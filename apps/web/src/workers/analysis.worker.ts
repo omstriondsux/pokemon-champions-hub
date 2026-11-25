@@ -9,6 +9,7 @@ import {
   opponentModel,
   Regulation,
   scoreVsMeta,
+  trimModel,
   type Build,
   type MetaSet,
   type MetaSnapshot,
@@ -42,7 +43,8 @@ export type WorkerRequest =
   | (Base & { type: 'optimize'; build: Build; format: Format; topN: number; teamItems?: string[] })
   | (Base & { type: 'squad'; pool: PoolEntry[]; format: Format; profile: SquadProfile; locked: string[]; topN: number })
   | (Base & { type: 'recruit'; candidates: RecruitCandidate[]; pool: PoolEntry[]; format: Format; topN: number })
-  | (Base & { type: 'situation'; input: SituationInput });
+  | (Base & { type: 'situation'; input: SituationInput })
+  | (Base & { type: 'counter'; opponents: string[]; format: Format; trickRoom: boolean; pool: PoolEntry[]; history?: Record<string, Reveals[]> });
 
 function reg(pack: RegulationPack) {
   const key = `${pack.id}@${pack.packVersion}`;
@@ -95,6 +97,16 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       case 'recruit': {
         const meta = await metaSet(s, r.snapshotKey, r.topN, 3);
         result = { result: await adviseRecruitment(r.candidates, r.pool, meta, s, R, r.format) };
+        break;
+      }
+      case 'counter': {
+        // Best 6 from the available pool against THIS rival team (each rival weighted equally),
+        // then the usual team-preview analysis with that team.
+        const models = await Promise.all(r.opponents.map((o) => opponentModel(o, s, { team: r.opponents, history: r.history?.[o] })));
+        const meta: MetaSet = { models: models.map((m) => trimModel(m, 4)), weights: models.map(() => 1 / models.length), usage: models.map((m) => m.usage) };
+        const squad = buildSquads(r.pool, meta, R, r.format, 'balanced', { beam: 20, results: 1 });
+        const team = (squad.teams[0]?.members ?? []).map((i) => r.pool[i]!);
+        result = { result: adviseSelection(team.map((p) => p.build), models, R, { format: r.format, trickRoom: r.trickRoom }, s?.meta), models, team };
         break;
       }
       case 'situation':

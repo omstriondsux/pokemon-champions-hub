@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { getSpecies, STAT_IDS, toID, type StatTable } from '@pch/engine';
@@ -233,18 +234,21 @@ export function Modal({ title, onClose, children, wide }: { title: string; onClo
     window.addEventListener('keydown', k);
     return () => window.removeEventListener('keydown', k);
   }, [onClose]);
-  return (
+  // Portal to <body>: pages animate with `transform`, which would otherwise make `position: fixed`
+  // relative to the page (modal pushed off-screen, blur covering the page instead of the viewport).
+  return createPortal(
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4 backdrop-blur-sm" onMouseDown={onClose}>
-      <div className={`panel fade-up max-h-[92vh] w-full overflow-auto p-5 ${wide ? 'max-w-5xl' : 'max-w-xl'}`} onMouseDown={(e) => e.stopPropagation()}>
-        <div className="mb-4 flex items-center justify-between">
+      <div className={`panel flex max-h-[92vh] w-full flex-col overflow-hidden shadow-2xl shadow-black/50 ${wide ? 'max-w-5xl' : 'max-w-xl'}`} onMouseDown={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-line px-5 py-3">
           <h2 className="font-display text-xl font-bold tracking-wide">{title}</h2>
           <button className="btn btn-ghost p-1" onClick={onClose} aria-label="Cerrar">
             <X size={18} />
           </button>
         </div>
-        {children}
+        <div className="overflow-auto p-5">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

@@ -1,56 +1,55 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, Info, Loader2, NotebookPen, RotateCcw, ShieldCheck, Swords, Target, X, Zap } from 'lucide-react';
-import { ARCHETYPE_LABEL, type AdvisorResult, type Alternative, type OpponentModel } from '@pch/engine';
+import { AlertTriangle, Info, Loader2, NotebookPen, RotateCcw, Save, ShieldCheck, Swords, Target, X, Zap } from 'lucide-react';
+import { ARCHETYPE_LABEL, type AdvisorResult, type Alternative, type OpponentModel, type PoolEntry } from '@pch/engine';
 import { useApp } from '../lib/app';
 import { pct, resolveTeam } from '../lib/pokemon';
 import { runAnalysis } from '../lib/worker';
-import type { Mode } from '../lib/types';
+import { uid, type Mode, type Team } from '../lib/types';
+import { poolFrom } from '../lib/pool';
 import { navigate } from '../App';
 import { useTeamIssues } from './Teams';
-import { Badge, Combobox, Empty, PageHeader, scoreColor, Segmented, signed, Sprite, Types, useSpeciesOptions } from '../components/ui';
+import { Combobox, ItemIcon, PageHeader, scoreColor, signed, Sprite, Types, useSpeciesOptions } from '../components/ui';
 
 const ALT_ICON = { best: Target, conservative: ShieldCheck, aggressive: Zap } as const;
 
 export const PREFILL_KEY = 'pch.battlePrefill';
 
 export default function BattleAdvisor() {
-  const { settings, teams, pokemon, regulation, snapshot, t, names, metaIndex, historyReveals } = useApp();
-  const [mode, setMode] = useState<Mode>(settings.defaultMode);
-  const modeTeams = teams.filter((x) => x.format === mode);
-  const [teamId, setTeamId] = useState<string | undefined>(settings.activeTeam[mode] ?? modeTeams[0]?.id);
-  useEffect(() => setTeamId(settings.activeTeam[mode] ?? teams.find((x) => x.format === mode)?.id), [mode, settings.activeTeam, teams]);
-  const team = teams.find((x) => x.id === teamId);
-  const { builds } = resolveTeam(team, pokemon);
+  const { settings, teams, pokemon, regulation, snapshot, names, metaIndex, historyReveals, save, saveSettings } = useApp();
+  const mode: Mode = settings.defaultMode;
+  const team = teams.find((x) => x.id === settings.activeTeam[mode]);
+  const myBuilds = resolveTeam(team, pokemon).builds;
   const teamIssues = useTeamIssues(team);
   const teamErrors = teamIssues.filter((i) => i.severity === 'error');
+  const pool = useMemo(() => poolFrom(pokemon, names.species, { mode }), [pokemon, names, mode]);
 
   const [opps, setOpps] = useState<string[]>([]);
   const [tr, setTr] = useState(false);
+  // "team": choose from your registered team · "counter": recommend what to play from every Pokémon
+  const [source, setSource] = useState<'team' | 'counter'>(team ? 'team' : 'counter');
+  useEffect(() => setSource((s) => (team ? s : 'counter')), [team]);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string>();
-  const [res, setRes] = useState<{ result: AdvisorResult; models: OpponentModel[] }>();
+  const [res, setRes] = useState<{ result: AdvisorResult; models: OpponentModel[]; team?: PoolEntry[] }>();
+  const [savedMsg, setSavedMsg] = useState<string>();
   const inputRef = useRef<HTMLInputElement>(null);
   const options = useSpeciesOptions();
   const rules = regulation.format(mode);
   const snapEntry = metaIndex.find((m) => m.mode === mode);
+  const builds = source === 'team' ? myBuilds : (res?.team?.map((p) => p.build) ?? []);
 
-  const analyze = async (list = opps) => {
-    if (!builds.length || !list.length) return;
+  const analyze = async (list = opps, src = source) => {
+    if (!list.length || (src === 'team' && !myBuilds.length)) return;
     setBusy(true);
     setErr(undefined);
+    setSavedMsg(undefined);
     try {
       const s = await snapshot(mode);
-      const r = await runAnalysis<{ result: AdvisorResult; models: OpponentModel[] }>({
-        type: 'advise',
-        pack: regulation.pack,
-        snapshot: s,
-        snapshotKey: s?.meta.url,
-        team: builds,
-        opponents: list,
-        format: mode,
-        trickRoom: tr,
-        history: historyReveals,
-      });
+      const base = { pack: regulation.pack, snapshot: s, snapshotKey: s?.meta.url, opponents: list, format: mode, trickRoom: tr, history: historyReveals };
+      const r =
+        src === 'team'
+          ? await runAnalysis<{ result: AdvisorResult; models: OpponentModel[] }>({ type: 'advise', ...base, team: myBuilds })
+          : await runAnalysis<{ result: AdvisorResult; models: OpponentModel[]; team: PoolEntry[] }>({ type: 'counter', ...base, pool });
       setRes(r);
     } catch (e) {
       setErr(String(e));
@@ -60,112 +59,156 @@ export default function BattleAdvisor() {
   };
 
   useEffect(() => {
-    if (opps.length === 6) analyze(opps);
+    if (opps.length === 6) analyze(opps, source);
+    else setRes(undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [opps, tr, teamId]);
+  }, [opps, tr, source, team?.id]);
 
   const add = (s: string) => {
     if (opps.includes(s) || opps.length >= 6) return;
     setOpps([...opps, s]);
-    setRes(undefined);
   };
 
   const logBattle = (alt?: Alternative) => {
-    sessionStorage.setItem(PREFILL_KEY, JSON.stringify({ format: mode, teamId, opponentTeam: opps, mySelection: alt?.members ?? [], myLeads: alt?.leads ?? [], advisorFollowed: alt?.kind ?? null }));
+    sessionStorage.setItem(PREFILL_KEY, JSON.stringify({ format: mode, teamId: source === 'team' ? team?.id : undefined, opponentTeam: opps, mySelection: alt?.members ?? [], myLeads: alt?.leads ?? [], advisorFollowed: alt?.kind ?? null }));
     navigate('history', { new: '1' });
+  };
+
+  const saveCounter = async () => {
+    if (!res?.team) return;
+    const t: Team = { id: uid(), name: `Contra ${opps.slice(0, 2).map(names.species).join(' + ')}`, format: mode, regulation: regulation.id, members: res.team.map((p) => ({ pokemonId: p.ownerId, buildId: p.id })), notes: `Recomendado por el Battle Advisor contra: ${opps.join(', ')}` };
+    await save('teams', t);
+    await saveSettings({ activeTeam: { ...settings.activeTeam, [mode]: t.id } });
+    setSavedMsg(`Guardado como «${t.name}» y marcado como tu equipo activo.`);
   };
 
   return (
     <div className="fade-up">
-      <PageHeader
-        title={t('nav.advisor')}
-        subtitle={`Vista previa de equipos: elige ${rules.bring.value} de tu equipo registrado${rules.bring.confidence !== 'verified' ? ` (regla "${rules.bring.confidence}")` : ''}. Tiempo de vista previa: ${rules.timers.value.teamPreviewSec} s.`}
-        actions={
-          <>
-          </>
-        }
-      />
+      <PageHeader title="Battle Advisor" subtitle="Escribe el equipo del rival y te digo qué Pokémon sacar, quién empieza y qué riesgos hay." />
 
-      {!team ? (
-        <Empty>
-          Necesitas un equipo de {t(`mode.${mode}`).toLowerCase()} registrado.{' '}
-          <a className="text-accent underline" href="#/teams">
-            Crear equipo
-          </a>
-        </Empty>
-      ) : (
-        <>
-          {teamErrors.length > 0 && (
-            <div className="mb-3 rounded-lg border border-bad/40 bg-bad/10 p-3 text-sm text-bad">
-              ⚠ Tu equipo tiene {teamErrors.length} problema(s) de legalidad: {teamErrors[0]!.message}. Las recomendaciones pueden no ser aplicables.
-            </div>
-          )}
-          <div className="panel mb-4 p-4">
-            <div className="mb-2 flex items-center justify-between">
-              <span className="panel-title">Equipo rival ({opps.length}/6)</span>
-              <div className="flex items-center gap-3 text-sm">
-                <label className="flex items-center gap-1.5" title="Evalúa los enfrentamientos con el orden de velocidad invertido">
-                  <input type="checkbox" checked={tr} onChange={(e) => setTr(e.target.checked)} /> Bajo Trick Room
-                </label>
-                <button className="btn btn-ghost" onClick={() => (setOpps([]), setRes(undefined), inputRef.current?.focus())}>
-                  <RotateCcw size={14} /> Limpiar
-                </button>
-              </div>
-            </div>
-            <div className="grid grid-cols-[1fr_auto] gap-3">
-              <div onKeyDown={(e) => e.key === 'Backspace' && !(e.target as HTMLInputElement).value && setOpps(opps.slice(0, -1))}>
-                <Combobox options={options} onChange={add} placeholder="Escribe 2–3 letras y Enter (Retroceso borra el último)" autoFocus clearOnSelect inputRef={inputRef} onEnterEmpty={() => analyze()} />
-              </div>
-              <button className="btn btn-primary" disabled={!opps.length || busy} onClick={() => analyze()}>
-                {busy ? <Loader2 size={15} className="animate-spin" /> : <Swords size={15} />} Analizar
-              </button>
-            </div>
-            <div className="mt-3 grid grid-cols-6 gap-2">
-              {[0, 1, 2, 3, 4, 5].map((i) => {
-                const s = opps[i];
-                const m = res?.models.find((x) => x.species === s);
-                return (
-                  <div key={i} className={`relative rounded-lg border p-2 text-center ${s ? 'border-line-strong bg-panel-2' : 'border-dashed border-line'}`}>
-                    {s ? (
-                      <>
-                        <button className="absolute top-1 right-1 text-faint hover:text-bad" onClick={() => (setOpps(opps.filter((x) => x !== s)), setRes(undefined))}>
-                          <X size={13} />
-                        </button>
-                        <Sprite species={s} size={56} className="mx-auto" />
-                        <div className="truncate text-xs font-medium">{names.species(s)}</div>
-                        <div className="mt-0.5">
-                          <Types species={s} small />
-                        </div>
-                        {m && (
-                          <div className="mt-1 flex flex-wrap justify-center gap-1">
-                            <Badge level={m.reliability} title={m.notes.join(' ')} />
-                            {m.usage > 0 && <span className="chip">{pct(m.usage, 1)}</span>}
-                          </div>
-                        )}
-                        {m && m.tags.length > 0 && <div className="mt-1 text-[10px] leading-tight text-accent-2">{m.tags.filter((x) => x !== 'Protect').slice(0, 3).join(' · ')}</div>}
-                      </>
-                    ) : (
-                      <div className="grid h-full min-h-24 place-items-center text-xs text-faint">{i + 1}</div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            {!snapEntry && <p className="mt-2 text-xs text-warn">Sin estadísticas de meta: todas las builds rivales serán hipótesis.</p>}
+      {/* STEP 1 */}
+      <div className="panel mb-4 p-4">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <span className="flex items-center gap-2 font-semibold">
+            <span className="grid h-6 w-6 place-items-center rounded-full bg-accent text-xs text-white">1</span> Equipo rival <span className="text-sm font-normal text-faint">({opps.length}/6)</span>
+          </span>
+          <div className="flex items-center gap-3 text-sm">
+            <label className="flex items-center gap-1.5" title="Evalúa los enfrentamientos con el orden de velocidad invertido">
+              <input type="checkbox" checked={tr} onChange={(e) => setTr(e.target.checked)} /> Bajo Trick Room
+            </label>
+            <button className="btn btn-ghost" onClick={() => (setOpps([]), inputRef.current?.focus())}>
+              <RotateCcw size={14} /> Limpiar
+            </button>
           </div>
+        </div>
+        <div onKeyDown={(e) => e.key === 'Backspace' && !(e.target as HTMLInputElement).value && setOpps(opps.slice(0, -1))}>
+          <Combobox options={options} onChange={add} placeholder="Escribe 2–3 letras del Pokémon rival y pulsa Enter (Retroceso borra el último)" autoFocus clearOnSelect inputRef={inputRef} onEnterEmpty={() => analyze()} />
+        </div>
+        <div className="mt-3 grid grid-cols-3 gap-2 md:grid-cols-6">
+          {[0, 1, 2, 3, 4, 5].map((i) => {
+            const s = opps[i];
+            const m = res?.models.find((x) => x.species === s);
+            return (
+              <div key={i} className={`relative min-h-28 rounded-lg border p-2 text-center ${s ? 'border-line-strong bg-panel-2' : 'border-dashed border-line'}`}>
+                {s ? (
+                  <>
+                    <button className="absolute top-1 right-1 text-faint hover:text-bad" onClick={() => setOpps(opps.filter((x) => x !== s))} aria-label="Quitar">
+                      <X size={13} />
+                    </button>
+                    <Sprite species={s} size={52} className="mx-auto" />
+                    <div className="truncate text-xs font-medium">{names.species(s)}</div>
+                    <div className="mt-0.5">
+                      <Types species={s} small />
+                    </div>
+                    {m && m.usage > 0 && <div className="mt-1 text-[10px] text-faint">{pct(m.usage, 1)} de uso</div>}
+                  </>
+                ) : (
+                  <div className="grid h-full place-items-center text-xs text-faint">{i + 1}</div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        {!snapEntry && <p className="mt-2 text-xs text-warn">Sin estadísticas de meta: todas las builds rivales serán hipótesis.</p>}
+      </div>
 
-          {err && <p className="mb-3 text-sm text-bad">{err}</p>}
-          {busy && !res && (
-            <div className="flex items-center gap-2 text-sm text-muted">
-              <Loader2 size={15} className="animate-spin" /> Calculando enfrentamientos…
+      {/* STEP 2 */}
+      <div className="panel mb-4 p-4">
+        <div className="mb-3 flex items-center gap-2 font-semibold">
+          <span className="grid h-6 w-6 place-items-center rounded-full bg-accent text-xs text-white">2</span> ¿Con qué juegas?
+        </div>
+        <div className="grid gap-2 md:grid-cols-2">
+          <button
+            disabled={!team}
+            onClick={() => setSource('team')}
+            className={`rounded-xl border p-3 text-left transition-colors disabled:opacity-50 ${source === 'team' ? 'border-accent bg-accent/10' : 'border-line hover:border-line-strong'}`}
+          >
+            <div className="font-semibold">Con mi equipo registrado</div>
+            <div className="text-xs text-muted">
+              {team ? (
+                <span className="flex items-center gap-1">
+                  {team.name}:{' '}
+                  {myBuilds.map((b, i) => (
+                    <Sprite key={i} species={b.species} size={22} kind="icon" />
+                  ))}
+                </span>
+              ) : (
+                'Aún no tienes equipo activo (elígelo arriba o crea uno en Equipos).'
+              )}
             </div>
-          )}
-          {res && res.models[0]?.archetypes?.length ? (
+            <div className="mt-1 text-[11px] text-faint">Lo que harías en ranked: eliges {rules.bring.value} de tus 6.</div>
+          </button>
+          <button onClick={() => setSource('counter')} className={`rounded-xl border p-3 text-left transition-colors ${source === 'counter' ? 'border-accent bg-accent/10' : 'border-line hover:border-line-strong'}`}>
+            <div className="font-semibold">Recomiéndame qué jugar</div>
+            <div className="text-xs text-muted">Arma el mejor equipo contra este rival con todos los Pokémon disponibles.</div>
+            <div className="mt-1 text-[11px] text-faint">Útil para preparar equipos contra lo que más te encuentras.</div>
+          </button>
+        </div>
+        {source === 'team' && teamErrors.length > 0 && <p className="mt-2 text-sm text-bad">⚠ Tu equipo tiene problemas de legalidad: {teamErrors[0]!.message}.</p>}
+        {opps.length > 0 && opps.length < 6 && (
+          <button className="btn btn-primary mt-3" disabled={busy} onClick={() => analyze()}>
+            <Swords size={15} /> Analizar con {opps.length} rival{opps.length > 1 ? 'es' : ''}
+          </button>
+        )}
+        {opps.length === 0 && <p className="mt-3 text-sm text-faint">Añade los Pokémon del rival en el paso 1: con 6 se analiza solo.</p>}
+      </div>
+
+      {err && <p className="mb-3 text-sm text-bad">{err}</p>}
+      {busy && (
+        <div className="panel mb-4 flex items-center gap-2 p-4 text-sm text-muted">
+          <Loader2 size={15} className="animate-spin" /> {source === 'counter' ? 'Buscando el mejor equipo entre los Pokémon disponibles…' : 'Calculando enfrentamientos…'}
+        </div>
+      )}
+      {res && !busy && (
+        <>
+          {res.models[0]?.archetypes?.length ? (
             <div className="mb-3 rounded-lg border border-accent-2/40 bg-accent-2/10 px-3 py-2 text-sm">
-              Arquetipo rival detectado: <b>{res.models[0].archetypes.map((a) => ARCHETYPE_LABEL[a]).join(' · ')}</b>. Las builds probables se han reponderado (p. ej. sets lentos en Trick Room).
+              Arquetipo rival: <b>{res.models[0].archetypes.map((a) => ARCHETYPE_LABEL[a]).join(' · ')}</b>. Sus builds probables se ajustaron a ese estilo.
             </div>
           ) : null}
-          {res && <Results res={res.result} builds={builds} opps={opps} onLog={logBattle} />}
+          {source === 'counter' && res.team && (
+            <div className="panel mb-4 border-accent/60 p-4">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <span className="font-display text-lg font-bold">Equipo recomendado contra este rival</span>
+                <button className="btn btn-primary" onClick={saveCounter}>
+                  <Save size={14} /> Guardar y usar como mi equipo
+                </button>
+              </div>
+              <div className="grid grid-cols-3 gap-2 md:grid-cols-6">
+                {res.team.map((p) => (
+                  <div key={p.id} className="rounded-lg bg-panel-2 p-2 text-center">
+                    <Sprite species={p.build.species} size={56} className="mx-auto" />
+                    <div className="truncate text-xs font-semibold">{names.species(p.build.species)}</div>
+                    <div className="flex items-center justify-center gap-1 truncate text-[10px] text-faint">
+                      <ItemIcon item={p.build.item} /> {names.item(p.build.item) || 'sin objeto'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {savedMsg && <p className="mt-2 text-sm text-good">{savedMsg}</p>}
+            </div>
+          )}
+          <Results res={res.result} builds={builds} opps={opps} onLog={logBattle} />
         </>
       )}
     </div>
