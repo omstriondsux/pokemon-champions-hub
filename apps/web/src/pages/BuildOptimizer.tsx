@@ -71,7 +71,6 @@ export default function BuildOptimizer() {
         subtitle="Evalúa una build contra el meta y mide el coste de oportunidad de cada movimiento, objeto, alineación y Stat Point."
         actions={
           <>
-            <Segmented value={mode} onChange={(m) => (setMode(m), setRes(undefined))} options={[{ value: 'doubles', label: 'Dobles' }, { value: 'singles', label: 'Individuales' }]} />
             <select className="input w-72" value={key} onChange={(e) => choose(e.target.value)}>
               {options.map(({ p, b }) => (
                 <option key={b.id} value={b.id}>

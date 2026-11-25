@@ -70,7 +70,6 @@ export default function MetaIntelligence() {
             'Sin datos'
           )
         }
-        actions={<Segmented value={mode} onChange={setMode} options={[{ value: 'doubles', label: 'Dobles' }, { value: 'singles', label: 'Individuales' }]} />}
       />
 
       <div className="mb-4 grid gap-3 lg:grid-cols-3">

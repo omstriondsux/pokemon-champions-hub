@@ -6,7 +6,9 @@ import { pct, resolveTeam } from '../lib/pokemon';
 import { runAnalysis } from '../lib/worker';
 import type { Mode } from '../lib/types';
 import { useTeamIssues } from './Teams';
-import { Badge, PageHeader, scoreColor, Segmented, signed, Sprite } from '../components/ui';
+import { Badge, PageHeader, scoreColor, signed, Sprite } from '../components/ui';
+import { ArrowRight, CheckCircle2, Circle, Swords as SwordsIcon, Boxes, Sparkles, MessageSquare } from 'lucide-react';
+import { MasterBall } from '../components/MasterBall';
 
 interface ThreatRow {
   species: string;
@@ -61,8 +63,10 @@ export default function Dashboard() {
       <PageHeader
         title={t('nav.dashboard')}
         subtitle="Resumen del meta, alertas y estado de tu equipo activo."
-        actions={<Segmented value={mode} onChange={setMode} options={[{ value: 'doubles', label: t('mode.doubles') }, { value: 'singles', label: t('mode.singles') }]} />}
       />
+
+      <GettingStarted mode={mode} />
+      <QuickActions />
 
       <div className="mb-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <Card icon={CalendarClock} title="Regulación activa">
@@ -197,4 +201,74 @@ export function countUnverified(obj: unknown): number {
   const o = obj as Record<string, unknown>;
   if ('confidence' in o && 'value' in o) return o.confidence === 'verified' ? 0 : 1;
   return Object.values(o).reduce<number>((s, v) => s + countUnverified(v), 0);
+}
+
+function GettingStarted({ mode }: { mode: Mode }) {
+  const { pokemon, teams, settings, battles } = useApp();
+  const steps = [
+    { done: pokemon.length > 0, title: 'Añade tus Pokémon', text: 'Uno a uno o pegando un equipo en formato Showdown.', href: '#/pokemon', cta: 'Ir a Mis Pokémon' },
+    { done: teams.some((x) => x.format === mode), title: `Crea un equipo de ${mode === 'doubles' ? 'dobles' : 'individuales'}`, text: 'Elige 6 builds: es el equipo con el que buscas partida.', href: '#/teams', cta: 'Crear equipo' },
+    { done: !!settings.activeTeam[mode], title: 'Márcalo como equipo activo', text: 'Arriba a la derecha, en «Equipo». Todo el análisis usa ese equipo.', href: '#/teams', cta: 'Elegir equipo' },
+    { done: battles.length > 0, title: 'Usa el Battle Advisor en tu próximo combate', text: 'Escribe los 6 rivales en la vista previa y te dice a quién sacar.', href: '#/advisor', cta: 'Abrir Advisor' },
+  ];
+  const doneCount = steps.filter((s) => s.done).length;
+  if (doneCount === steps.length) return null;
+  const next = steps.find((s) => !s.done)!;
+  return (
+    <div className="panel mb-4 overflow-hidden">
+      <div className="flex items-center gap-4 border-b border-line bg-gradient-to-r from-accent/15 to-transparent px-5 py-4">
+        <MasterBall size={44} />
+        <div className="flex-1">
+          <div className="font-display text-xl font-bold">Primeros pasos</div>
+          <div className="text-sm text-muted">
+            {doneCount} de {steps.length} completados · siguiente: <b className="text-text">{next.title}</b>
+          </div>
+        </div>
+        <a href={next.href} className="btn btn-primary">
+          {next.cta} <ArrowRight size={15} />
+        </a>
+      </div>
+      <div className="grid gap-px bg-line md:grid-cols-4">
+        {steps.map((s, i) => (
+          <a key={i} href={s.href} className={`flex gap-3 bg-panel p-4 transition-colors hover:bg-panel-2 ${s === next ? 'ring-1 ring-accent/50 ring-inset' : ''}`}>
+            {s.done ? <CheckCircle2 size={20} className="shrink-0 text-good" /> : <Circle size={20} className={`shrink-0 ${s === next ? 'text-accent' : 'text-faint'}`} />}
+            <div>
+              <div className={`text-sm font-semibold ${s.done ? 'text-muted line-through' : ''}`}>
+                {i + 1}. {s.title}
+              </div>
+              <div className="text-xs text-faint">{s.text}</div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function QuickActions() {
+  const actions = [
+    { href: '#/advisor', icon: SwordsIcon, title: 'Analizar rival', text: 'Antes del combate', primary: true },
+    { href: '#/pokemon', icon: Boxes, title: 'Mis Pokémon', text: 'Añadir o editar' },
+    { href: '#/squad', icon: Sparkles, title: 'Armar equipo', text: 'Con tu inventario' },
+    { href: '#/coach', icon: MessageSquare, title: '¿Qué mejoro?', text: 'Debilidades del equipo' },
+  ];
+  return (
+    <div className="mb-4 grid grid-cols-2 gap-3 xl:grid-cols-4">
+      {actions.map((a) => {
+        const Icon = a.icon;
+        return (
+          <a key={a.href} href={a.href} className={`panel flex items-center gap-3 p-4 transition-all hover:-translate-y-0.5 hover:border-accent/60 ${a.primary ? 'border-accent/50 bg-gradient-to-br from-accent/20 to-transparent' : ''}`}>
+            <span className={`grid h-11 w-11 place-items-center rounded-xl ${a.primary ? 'bg-accent text-white' : 'bg-panel-2 text-accent'}`}>
+              <Icon size={22} />
+            </span>
+            <span>
+              <span className="block font-semibold">{a.title}</span>
+              <span className="block text-xs text-faint">{a.text}</span>
+            </span>
+            <ArrowRight size={16} className="ml-auto text-faint" />
+          </a>
+        );
+      })}
+    </div>
+  );
 }

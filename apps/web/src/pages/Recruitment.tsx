@@ -45,7 +45,6 @@ export default function Recruitment() {
       <PageHeader
         title="Recruitment Advisor"
         subtitle="Introduce las opciones que te ofrece el juego. Se distingue entre el mejor Pokémon en general y el mejor para TU inventario."
-        actions={<Segmented value={mode} onChange={(m) => (setMode(m), setRes(undefined))} options={[{ value: 'doubles', label: 'Dobles' }, { value: 'singles', label: 'Individuales' }]} />}
       />
       <div className="panel mb-4 p-4">
         <div className="grid gap-3 md:grid-cols-[1fr_auto]">

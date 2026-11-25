@@ -123,7 +123,6 @@ export default function DamageCalc() {
         subtitle="Motor: @smogon/calc (mecánicas de Champions). Probabilidades exactas sobre las 16 tiradas, con precisión y críticos."
         actions={
           <>
-            <Segmented value={mode} onChange={setMode} options={[{ value: 'doubles', label: 'Dobles' }, { value: 'singles', label: 'Individuales' }]} />
             <button
               className="btn"
               onClick={() => {

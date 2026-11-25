@@ -69,7 +69,6 @@ export default function Simulator() {
       <PageHeader
         title="Simulador de situaciones"
         subtitle="Para práctica y análisis posterior. No lo uses durante competiciones oficiales: prohíben la asistencia externa."
-        actions={<Segmented value={mode} onChange={(m) => (setMode(m), setRes(undefined))} options={[{ value: 'doubles', label: 'Dobles' }, { value: 'singles', label: 'Individuales' }]} />}
       />
       <div className="mb-4 grid gap-4 lg:grid-cols-2">
         <div className="panel p-4">

@@ -135,7 +135,6 @@ export default function Coach() {
       <PageHeader
         title="Coach analítico"
         subtitle="Respuestas basadas en cálculos y en tu historial, sin IA generativa (decisión tuya). Cada respuesta indica si es un hecho, un cálculo, una estadística, una inferencia o una hipótesis."
-        actions={<Segmented value={mode} onChange={setMode} options={[{ value: 'doubles', label: 'Dobles' }, { value: 'singles', label: 'Individuales' }]} />}
       />
       <div className="mb-4 flex items-center gap-2">
         {builds.map((b, i) => (

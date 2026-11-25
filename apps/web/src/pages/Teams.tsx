@@ -34,7 +34,6 @@ export default function Teams() {
         subtitle="El equipo registrado es el que llevas a buscar partida. El Battle Advisor solo elige entre sus miembros."
         actions={
           <>
-            <Segmented value={mode} onChange={setMode} options={[{ value: 'doubles', label: t('mode.doubles') }, { value: 'singles', label: t('mode.singles') }]} />
             <button className="btn btn-primary" onClick={() => setEditing({ id: uid(), name: `Equipo ${list.length + 1}`, format: mode, regulation: '', members: [], notes: '' })}>
               <Plus size={15} /> Nuevo equipo
             </button>

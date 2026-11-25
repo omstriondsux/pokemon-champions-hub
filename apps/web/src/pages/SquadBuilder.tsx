@@ -51,7 +51,6 @@ export default function SquadBuilder() {
       <PageHeader
         title="Squad Builder"
         subtitle="Construye equipos con TU inventario. Fija los Pokémon obligatorios y el sistema completa el resto según el objetivo."
-        actions={<Segmented value={mode} onChange={(m) => (setMode(m), setRes(undefined))} options={[{ value: 'doubles', label: 'Dobles' }, { value: 'singles', label: 'Individuales' }]} />}
       />
       <div className="grid gap-4 xl:grid-cols-[380px_1fr]">
         <div className="panel p-4">

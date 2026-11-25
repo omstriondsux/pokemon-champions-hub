@@ -74,7 +74,6 @@ export default function SpeedTiers() {
             'Sin datos de meta'
           )
         }
-        actions={<Segmented value={mode} onChange={setMode} options={[{ value: 'doubles', label: 'Dobles' }, { value: 'singles', label: 'Individuales' }]} />}
       />
       <div className="panel mb-4 flex flex-wrap items-center gap-4 p-3 text-sm">
         <input className="input w-56" placeholder="Filtrar Pokémon…" value={q} onChange={(e) => setQ(e.target.value)} />

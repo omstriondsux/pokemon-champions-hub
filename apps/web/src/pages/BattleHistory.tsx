@@ -101,7 +101,6 @@ export default function BattleHistory() {
         subtitle={list.length ? `${list.length} combates · ${wins} victorias · tasa ${((wins / list.length) * 100).toFixed(0)}% (IC95% ${(lo * 100).toFixed(0)}–${(hi * 100).toFixed(0)}%)` : 'Registra tus combates para detectar patrones.'}
         actions={
           <>
-            <Segmented value={mode} onChange={setMode} options={[{ value: 'all', label: 'Todos' }, { value: 'doubles', label: t('mode.doubles') }, { value: 'singles', label: t('mode.singles') }]} />
             <button className="btn btn-primary" onClick={() => setEditing(blank())}>
               <Plus size={15} /> Registrar
             </button>

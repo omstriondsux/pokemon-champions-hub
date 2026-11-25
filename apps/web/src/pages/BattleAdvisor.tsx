@@ -82,15 +82,6 @@ export default function BattleAdvisor() {
         subtitle={`Vista previa de equipos: elige ${rules.bring.value} de tu equipo registrado${rules.bring.confidence !== 'verified' ? ` (regla "${rules.bring.confidence}")` : ''}. Tiempo de vista previa: ${rules.timers.value.teamPreviewSec} s.`}
         actions={
           <>
-            <Segmented value={mode} onChange={(m) => (setMode(m), setRes(undefined))} options={[{ value: 'doubles', label: t('mode.doubles') }, { value: 'singles', label: t('mode.singles') }]} />
-            <select className="input w-52" value={teamId ?? ''} onChange={(e) => setTeamId(e.target.value)}>
-              {modeTeams.length === 0 && <option value="">Sin equipos</option>}
-              {modeTeams.map((x) => (
-                <option key={x.id} value={x.id}>
-                  {x.name}
-                </option>
-              ))}
-            </select>
           </>
         }
       />
