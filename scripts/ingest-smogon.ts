@@ -3,6 +3,7 @@
  *
  *   npm run ingest:smogon                       # latest month, default formats/cutoffs
  *   npm run ingest:smogon -- --month 2026-10 --cutoffs 0,1630
+ *   npm run ingest:smogon -- --months 2        # latest 2 months (for trends)
  *
  * - Source: https://www.smogon.com/stats/<month>/chaos/<format>-<cutoff>.json (public, monthly).
  * - These are SIMULATOR stats: they are labelled as such and never presented as official in-game data.
@@ -53,11 +54,11 @@ async function get(url: string): Promise<Response> {
   return r;
 }
 
-async function latestMonth(): Promise<string> {
+async function latestMonths(n: number): Promise<string[]> {
   const html = await (await get(`${BASE}/`)).text();
   const months = [...html.matchAll(/href="(\d{4}-\d{2})\/"/g)].map((m) => m[1]!).sort();
   if (!months.length) throw new Error('No months found on smogon.com/stats');
-  return months[months.length - 1]!;
+  return months.slice(-n);
 }
 
 async function listFormats(month: string): Promise<string[]> {
@@ -146,12 +147,23 @@ function writeAtomic(path: string, data: unknown) {
   renameSync(tmp, path);
 }
 
-async function main() {
-  const month = args.get('month') || (await latestMonth());
-  const formats = await listFormats(month);
-  const index: Record<string, unknown>[] = [];
-  let failures = 0;
+interface IndexEntry {
+  file: string;
+  month: string;
+  mode: string;
+  ratingCutoff: number;
+  [k: string]: unknown;
+}
 
+async function ingestMonth(month: string, index: Map<string, IndexEntry>): Promise<number> {
+  let failures = 0;
+  let formats: string[];
+  try {
+    formats = await listFormats(month);
+  } catch (e) {
+    log({ level: 'error', month, error: String(e) });
+    return 1;
+  }
   for (const mode of ['singles', 'doubles'] as const) {
     const fmt = formats.find((f) => FORMAT_PATTERNS[mode].test(f));
     if (!fmt) {
@@ -161,13 +173,17 @@ async function main() {
     }
     const reg = FORMAT_PATTERNS[mode].exec(fmt)![1]!.toUpperCase().replace(/^M/, 'M-'); // "mc" → "M-C"
     for (const cutoff of CUTOFFS) {
-      const url = `${BASE}/${month}/chaos/${fmt}-${cutoff}.json`;
+      const rel = `smogon/${month}/${mode}-${cutoff}.json`;
       const out = join(OUT_DIR, month, `${mode}-${cutoff}.json`);
+      if (existsSync(out) && !args.has('force') && month !== [...index.values()].map((e) => e.month).sort().at(-1)) {
+        continue; // past months are immutable on Smogon: skip re-download
+      }
+      const url = `${BASE}/${month}/chaos/${fmt}-${cutoff}.json`;
       try {
         const chaos = (await (await get(url)).json()) as Chaos;
         const snap = transform(chaos, mode, reg, month, url);
         writeAtomic(out, snap);
-        index.push({ ...snap.meta, file: `smogon/${month}/${mode}-${cutoff}.json` });
+        index.set(rel, { ...snap.meta, file: rel });
         log({ level: 'info', mode, cutoff, month, battles: snap.meta.battles, species: snap.meta.speciesIncluded });
         console.log(`[${mode} ${cutoff}] ${fmt}: ${snap.meta.battles} battles, ${snap.meta.speciesIncluded} species → ${out}`);
       } catch (e) {
@@ -177,7 +193,18 @@ async function main() {
       }
     }
   }
-  if (index.length) writeAtomic(join(OUT_DIR, 'index.json'), { updatedAt: new Date().toISOString(), month, snapshots: index });
+  return failures;
+}
+
+async function main() {
+  const months = args.get('month') ? [args.get('month')!] : await latestMonths(Number(args.get('months') ?? 2));
+  const indexFile = join(OUT_DIR, 'index.json');
+  const index = new Map<string, IndexEntry>();
+  if (existsSync(indexFile)) for (const e of (JSON.parse(readFileSync(indexFile, 'utf8')).snapshots ?? []) as IndexEntry[]) index.set(e.file, e);
+  let failures = 0;
+  for (const m of months) failures += await ingestMonth(m, index);
+  const snapshots = [...index.values()].sort((a, b) => b.month.localeCompare(a.month) || a.mode.localeCompare(b.mode) || a.ratingCutoff - b.ratingCutoff);
+  writeAtomic(indexFile, { updatedAt: new Date().toISOString(), month: snapshots[0]?.month, snapshots });
   if (failures) process.exitCode = 1;
 }
 

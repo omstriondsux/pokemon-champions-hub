@@ -64,26 +64,48 @@ interface BestHit {
   pct?: [number, number];
 }
 
+/** Best move by expected uses-to-KO. Screening without crits, then the winner is re-scored exactly. */
 function bestHit(attacker: Build, defender: Build, moves: string[], reg: Regulation, gameType: 'Singles' | 'Doubles'): BestHit {
-  let best: BestHit = { hits: HIT_CAP };
+  let bestMove: string | undefined;
+  let bestHits = Infinity;
   for (const m of moves) {
     if (!DAMAGING(m)) continue;
     try {
-      const r = calcDamage(attacker, defender, m, reg, { field: { gameType } });
+      const r = calcDamage(attacker, defender, m, reg, { field: { gameType }, ignoreCrit: true });
       const hits = expectedHits(r.koChance);
-      if (hits < best.hits) best = { move: r.move, hits, pct: [r.minPct, r.maxPct] };
+      if (hits < bestHits) (bestHits = hits), (bestMove = m);
     } catch {
       /* moves the calc cannot model are skipped */
     }
   }
-  return best;
+  if (!bestMove) return { hits: HIT_CAP };
+  const r = calcDamage(attacker, defender, bestMove, reg, { field: { gameType } });
+  return { move: r.move, hits: expectedHits(r.koChance), pct: [r.minPct, r.maxPct] };
 }
+
+/** Memo of pair evaluations: the same (my build, rival model) pair recurs across advisor, dashboard and squad builder. */
+const pairCache = new Map<string, PairResult>();
+const PAIR_CACHE_MAX = 20_000;
+function pairKey(mine: Build, opp: OpponentModel, reg: Regulation, opts: AdvisorOptions) {
+  return `${reg.id}@${reg.pack.packVersion}|${opts.format}|${opts.trickRoom ? 1 : 0}|${JSON.stringify(mine)}|${opp.species}|${opp.candidates.map((c) => `${c.label}:${c.weight.toFixed(4)}:${c.likelyMoves.length}`).join(',')}`;
+}
+export const clearPairCache = () => pairCache.clear();
 
 export function pairScore(myHits: number, theirHits: number, pFirst: number): number {
   return Math.max(-1, Math.min(1, (theirHits - myHits + (pFirst - 0.5)) / 2));
 }
 
 export function evaluatePair(mine: Build, opp: OpponentModel, reg: Regulation, opts: AdvisorOptions): PairResult {
+  const key = pairKey(mine, opp, reg, opts);
+  const hit = pairCache.get(key);
+  if (hit) return hit;
+  const res = evaluatePairUncached(mine, opp, reg, opts);
+  if (pairCache.size >= PAIR_CACHE_MAX) pairCache.clear();
+  pairCache.set(key, res);
+  return res;
+}
+
+function evaluatePairUncached(mine: Build, opp: OpponentModel, reg: Regulation, opts: AdvisorOptions): PairResult {
   const gameType = reg.format(opts.format).gameType;
   const mySpeed = finalSpeed(mine, reg);
   let score = 0;
@@ -163,6 +185,9 @@ export interface Alternative {
   risks: string[];
   winConditions: string[];
   leadFactors: string[];
+  /** Support value credited to this selection (speed control, Intimidate, Fake Out…), with reasons. */
+  support: number;
+  supportFactors: string[];
 }
 
 export interface Threat {
@@ -220,6 +245,60 @@ function chooseLeads(S: number[], team: Build[], M: number[][], oppCount: number
   return { leads: best.leads, back: S.filter((i) => !best.leads.includes(i)), factors: best.factors };
 }
 
+
+/**
+ * Support value of a selection against a rival selection. The 1v1 index cannot see what support
+ * Pokémon do, so their contribution is credited here explicitly and bounded (≤ 0.20, halved in singles).
+ * Each term is tied to the actual rival team: Intimidate is worth more against physical attackers,
+ * Tailwind/Trick Room more when the rivals are faster than you.
+ */
+export interface SupportContext {
+  mySpeed: number[];
+  oppSpeed: number[];
+  oppPhysical: number[]; // 0..1 share of the rival's plausible sets that are physical
+  oppTrickRoom: boolean;
+  doubles: boolean;
+  team: Build[];
+}
+
+const SC_NON_TR = new Set(['tailwind', 'icywind', 'electroweb', 'thunderwave']);
+const ANTI_TR = new Set(['taunt', 'imprison', 'trickroom']);
+
+export function supportValue(S: number[], T: number[], ctx: SupportContext): { value: number; why: string[] } {
+  const moves = (i: number): string[] => ctx.team[i]!.moves.map(toID);
+  const has = (set: Set<string>) => S.filter((i) => moves(i).some((m) => set.has(m)));
+  const why: string[] = [];
+  let v = 0;
+  let slower = 0;
+  for (const i of S) for (const o of T) if (ctx.oppSpeed[o]! > ctx.mySpeed[i]!) slower++;
+  const fracSlower = slower / (S.length * T.length);
+  const phys = mean(T.map((o) => ctx.oppPhysical[o]!));
+
+  if (ctx.doubles && has(FAKE_OUT).length) (v += 0.04), why.push(`Fake Out (${has(FAKE_OUT).map((i) => ctx.team[i]!.species).join(', ')})`);
+  if (ctx.doubles && has(REDIRECT).length) (v += 0.04), why.push(`Redirección (${has(REDIRECT).map((i) => ctx.team[i]!.species).join(', ')})`);
+  const intim = S.filter((i) => toID(ctx.team[i]!.ability) === 'intimidate');
+  if (intim.length && phys > 0) {
+    const x = 0.08 * phys * (intim.length > 1 ? 1.5 : 1);
+    v += x;
+    why.push(`Intimidate contra ${(phys * 100).toFixed(0)}% de sets físicos rivales (+${x.toFixed(2)})`);
+  }
+  const sc = has(SC_NON_TR);
+  if (sc.length && fracSlower > 0) {
+    const x = 0.1 * fracSlower;
+    v += x;
+    why.push(`Control de velocidad (${sc.map((i) => ctx.team[i]!.species).join(', ')}): eres más lento en el ${(fracSlower * 100).toFixed(0)}% de los cruces (+${x.toFixed(2)})`);
+  }
+  const tr = S.filter((i) => moves(i).includes('trickroom'));
+  if (tr.length && fracSlower > 0.4) {
+    const x = (0.14 * (fracSlower - 0.4)) / 0.6;
+    v += x;
+    why.push(`Trick Room (${tr.map((i) => ctx.team[i]!.species).join(', ')}) favorece a tu selección lenta (+${x.toFixed(2)})`);
+  }
+  if (ctx.oppTrickRoom && has(ANTI_TR).length) (v += 0.04), why.push('Respuesta al Trick Room rival (Taunt/Imprison/TR propio)');
+  v = Math.min(0.2, v) * (ctx.doubles ? 1 : 0.5);
+  return { value: v, why };
+}
+
 const fmt = (x: number) => (x >= 0 ? '+' : '') + x.toFixed(2);
 
 export function adviseSelection(
@@ -244,9 +323,20 @@ export function adviseSelection(
   const Ss = combinations(mine, k);
   const Ts = combinations(theirs, kOpp); // uniform over their selections: we have no data on what they bring
 
+  const sctx: SupportContext = {
+    mySpeed: team.map((b) => finalSpeed(b, reg)),
+    oppSpeed: opponents.map((o) => o.candidates.reduce((s, c) => s + c.weight * finalSpeed(c.build, reg), 0)),
+    oppPhysical: opponents.map((o) => o.candidates.reduce((s, c) => s + c.weight * (c.build.sp.atk >= c.build.sp.spa ? 1 : 0), 0)),
+    oppTrickRoom: opponents.some((o) => o.archetypes?.includes('trickroom')),
+    doubles,
+    team,
+  };
+  if (opts.trickRoom) [sctx.mySpeed, sctx.oppSpeed] = [sctx.mySpeed.map((x) => -x), sctx.oppSpeed.map((x) => -x)];
+
   const scored = Ss.map((S) => {
-    const vals = Ts.map((T) => selectionValue(S, T, M));
-    const robust = Ts.map((T) => selectionValue(S, T, W));
+    const sup = Ts.map((T) => supportValue(S, T, sctx).value);
+    const vals = Ts.map((T, j) => selectionValue(S, T, M) + sup[j]!);
+    const robust = Ts.map((T, j) => selectionValue(S, T, W) + sup[j]!);
     return { S, expected: mean(vals), worstQuartile: tailMean(robust, 0.25, false), bestQuartile: tailMean(vals, 0.25, true) };
   });
 
@@ -274,6 +364,7 @@ export function adviseSelection(
       const pr = matrix[bestI]![o]!;
       if (s >= 0 && w < -0.25 && pr.worstLabel) risks.push(`Variante peligrosa de ${name}: ${pr.worstLabel} (${((pr.worstWeight ?? 0) * 100).toFixed(0)}% de sus builds) da vuelta el 1v1 de ${team[bestI]!.species} (${fmt(w)}).`);
     }
+    const supAll = supportValue(p.S, theirs, sctx);
     const offense = p.S.map((i) => ({ i, v: mean(theirs.map((o) => 1 / matrix[i]![o]!.detail.myHitsToKO)) })).sort((a, b) => b.v - a.v);
     const winConditions = offense.slice(0, 2).map(({ i, v }) => `${team[i]!.species}: mayor presión ofensiva (≈${(1 / v).toFixed(1)} usos de media para un KO).`);
     alternatives.push({
@@ -285,6 +376,8 @@ export function adviseSelection(
       worstQuartile: p.worstQuartile,
       bestQuartile: p.bestQuartile,
       sameAs: same?.kind,
+      support: supAll.value,
+      supportFactors: supAll.why,
       strengths: strengths.slice(0, 4),
       risks: risks.slice(0, 5),
       winConditions,
@@ -319,6 +412,7 @@ export function adviseSelection(
   const limitations = [
     'El índice 1v1 es heurístico, no una probabilidad de victoria.',
     'No modela cambios, posicionamiento, estados alterados, prioridad ni daño residual.',
+    'El apoyo (Fake Out, Intimidate, control de velocidad, redirección, Trick Room) se suma como bonus acotado (≤ 0,20), ligado al equipo rival.',
     doubles ? 'Dobles: los movimientos de área aplican la reducción ×0,75; los combos de dos atacantes y el apoyo se valoran solo con bonus en los leads.' : 'Individuales: 1v1 directos.',
     ...(rules.bring.confidence !== 'verified' ? [`Número de Pokémon a elegir (${rules.bring.value}): regla "${rules.bring.confidence}" en el paquete ${reg.id}.`] : []),
     ...(opts.trickRoom ? ['Evaluado bajo Trick Room (orden de velocidad invertido).'] : []),

@@ -10,3 +10,8 @@ export * from './meta.js';
 export * from './opponent.js';
 export * from './advisor.js';
 export * from './paste.js';
+export * from './metaset.js';
+export * from './optimizer.js';
+export * from './squad.js';
+export * from './recruit.js';
+export * from './situation.js';

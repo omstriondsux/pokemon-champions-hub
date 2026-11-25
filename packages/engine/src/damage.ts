@@ -160,7 +160,8 @@ export function calcDamage(attacker: Build, defender: Build, moveName: string, r
   const def = toCalcPokemon(defender, reg, opts.defender);
   const field = new Field({ gameType: 'Doubles', ...opts.field });
   const res = calculate(calcGen, atk, def, makeMove(moveName, reg), field);
-  const crit = calculate(calcGen, atk, def, makeMove(moveName, reg, { isCrit: true }), field);
+  // With ignoreCrit the crit branch has probability 0, so its calc is skipped (≈2× faster for searches).
+  const crit = opts.ignoreCrit ? res : calculate(calcGen, atk, def, makeMove(moveName, reg, { isCrit: true }), field);
   const dexMove = dex.moves.get(moveName);
   const assumptions: string[] = ['No residual damage, recovery or stat changes between uses'];
 

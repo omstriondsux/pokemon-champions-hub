@@ -60,9 +60,10 @@ const schemas: Record<Collection, z.ZodTypeAny> = {
 export interface AppOptions {
   store: Store;
   dataDir: string; // repo /data
+  updater?: { getStatus: () => unknown; run: (t: 'manual') => boolean };
 }
 
-export function createApp({ store, dataDir }: AppOptions) {
+export function createApp({ store, dataDir, updater }: AppOptions) {
   const app = new Hono();
 
   app.onError((err, c) => {
@@ -122,6 +123,9 @@ export function createApp({ store, dataDir }: AppOptions) {
     const p = safe(`snapshots/${file}`);
     return existsSync(p) ? c.json(JSON.parse(readFileSync(p, 'utf8'))) : c.json({ error: 'not found' }, 404);
   });
+  app.get('/api/meta/status', (c) => c.json(updater?.getStatus() ?? { running: false, log: [], disabled: true }));
+  app.post('/api/meta/refresh', (c) => (updater ? c.json({ started: updater.run('manual') }) : c.json({ error: 'updater not available' }, 503)));
+
   app.get('/api/i18n/:lang', (c) => {
     const lang = c.req.param('lang');
     if (!/^[a-z]{2}$/.test(lang)) return c.json({ error: 'bad lang' }, 400);

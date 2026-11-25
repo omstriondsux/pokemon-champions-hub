@@ -1,16 +1,48 @@
 /// <reference lib="webworker" />
-import { adviseSelection, database, evaluatePair, getSpecies, opponentModel, Regulation, type Build, type MetaSnapshot, type RegulationPack } from '@pch/engine';
+import {
+  adviseRecruitment,
+  adviseSelection,
+  analyseSituation,
+  buildMetaSet,
+  buildSquads,
+  optimizeBuild,
+  opponentModel,
+  Regulation,
+  scoreVsMeta,
+  type Build,
+  type MetaSet,
+  type MetaSnapshot,
+  type PoolEntry,
+  type RecruitCandidate,
+  type RegulationPack,
+  type Reveals,
+  type SituationInput,
+  type SquadProfile,
+} from '@pch/engine';
 
 /**
- * Heavy analyses run here so the UI never blocks.
- * Snapshots are cached by URL so a ~1 MB JSON is only cloned once.
+ * All heavy analyses run here so the UI never blocks.
+ * Snapshots are cached by URL (sent once), meta samples by (snapshot, topN), and pair evaluations
+ * inside the engine — repeated analyses reuse previous work.
  */
 const snapCache = new Map<string, MetaSnapshot>();
 const regCache = new Map<string, Regulation>();
+const metaCache = new Map<string, Promise<MetaSet>>();
 
+type Format = 'singles' | 'doubles';
+interface Base {
+  id: number;
+  pack: RegulationPack;
+  snapshot?: MetaSnapshot;
+  snapshotKey?: string;
+}
 export type WorkerRequest =
-  | { id: number; type: 'advise'; pack: RegulationPack; snapshot?: MetaSnapshot; snapshotKey?: string; team: Build[]; opponents: string[]; format: 'singles' | 'doubles'; trickRoom: boolean }
-  | { id: number; type: 'metaThreats'; pack: RegulationPack; snapshot?: MetaSnapshot; snapshotKey?: string; team: Build[]; format: 'singles' | 'doubles'; topN: number };
+  | (Base & { type: 'advise'; team: Build[]; opponents: string[]; format: Format; trickRoom: boolean; history?: Record<string, Reveals[]> })
+  | (Base & { type: 'metaThreats'; team: Build[]; format: Format; topN: number })
+  | (Base & { type: 'optimize'; build: Build; format: Format; topN: number; teamItems?: string[] })
+  | (Base & { type: 'squad'; pool: PoolEntry[]; format: Format; profile: SquadProfile; locked: string[]; topN: number })
+  | (Base & { type: 'recruit'; candidates: RecruitCandidate[]; pool: PoolEntry[]; format: Format; topN: number })
+  | (Base & { type: 'situation'; input: SituationInput });
 
 function reg(pack: RegulationPack) {
   const key = `${pack.id}@${pack.packVersion}`;
@@ -21,41 +53,55 @@ function snap(req: { snapshot?: MetaSnapshot; snapshotKey?: string }) {
   if (req.snapshot && req.snapshotKey) snapCache.set(req.snapshotKey, req.snapshot);
   return req.snapshot ?? (req.snapshotKey ? snapCache.get(req.snapshotKey) : undefined);
 }
+function metaSet(s: MetaSnapshot | undefined, key: string | undefined, topN: number, per = 3) {
+  const k = `${key}|${topN}|${per}`;
+  if (!metaCache.has(k)) metaCache.set(k, buildMetaSet(s, topN, per));
+  return metaCache.get(k)!;
+}
 
 self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
   const r = e.data;
   try {
     const s = snap(r);
     const R = reg(r.pack);
-    if (r.type === 'advise') {
-      const opps = await Promise.all(r.opponents.map((o) => opponentModel(o, s)));
-      const result = adviseSelection(r.team, opps, R, { format: r.format, trickRoom: r.trickRoom }, s?.meta);
-      self.postMessage({ id: r.id, ok: true, result, models: opps });
-    } else {
-      const t0 = performance.now();
-      const top = s ? Object.entries(s.pokemon).sort((a, b) => b[1].usage - a[1].usage) : [];
-      // Group megas under their base species (what you see at team preview), keep order by usage.
-      const species: string[] = [];
-      for (const [name] of top) {
-        const sp = getSpecies(name);
-        const base = sp?.isMega ? sp.baseSpecies : name;
-        if (!database.hasSpecies(base) || species.includes(base)) continue;
-        species.push(base);
-        if (species.length >= r.topN) break;
+    let result: unknown;
+    switch (r.type) {
+      case 'advise': {
+        const models = await Promise.all(r.opponents.map((o) => opponentModel(o, s, { team: r.opponents, history: r.history?.[o] })));
+        result = { result: adviseSelection(r.team, models, R, { format: r.format, trickRoom: r.trickRoom }, s?.meta), models };
+        break;
       }
-      const rows = [];
-      const skipped: string[] = [];
-      for (const sp of species) {
-        try {
-          const model = await opponentModel(sp, s);
-          const pairs = r.team.map((b) => evaluatePair(b, model, R, { format: r.format }));
-          rows.push({ species: sp, usage: model.usage, reliability: model.reliability, scores: pairs.map((p) => p.score), worst: pairs.map((p) => p.worst), best: Math.max(...pairs.map((p) => p.score)) });
-        } catch (err) {
-          skipped.push(`${sp}: ${String(err)}`);
-        }
+      case 'metaThreats': {
+        const t0 = performance.now();
+        const meta = await metaSet(s, r.snapshotKey, r.topN, 4);
+        const scores = r.team.map((b) => scoreVsMeta(b, meta, R, { format: r.format }));
+        const rows = meta.models.map((m, o) => {
+          const sc = scores.map((x) => x.rows[o]!.score);
+          return { species: m.species, usage: meta.usage[o]!, reliability: m.reliability, scores: sc, worst: scores.map((x) => x.rows[o]!.worst), best: Math.max(...sc) };
+        });
+        result = { result: { rows, elapsedMs: performance.now() - t0 } };
+        break;
       }
-      self.postMessage({ id: r.id, ok: true, result: { rows, skipped, elapsedMs: performance.now() - t0 } });
+      case 'optimize': {
+        const meta = await metaSet(s, r.snapshotKey, r.topN, 3);
+        result = { result: await optimizeBuild(r.build, meta, R, r.format, { teamItems: r.teamItems }) };
+        break;
+      }
+      case 'squad': {
+        const meta = await metaSet(s, r.snapshotKey, r.topN, 3);
+        result = { result: buildSquads(r.pool, meta, R, r.format, r.profile, { locked: r.locked, onProgress: (p) => self.postMessage({ id: r.id, progress: p }) }) };
+        break;
+      }
+      case 'recruit': {
+        const meta = await metaSet(s, r.snapshotKey, r.topN, 3);
+        result = { result: await adviseRecruitment(r.candidates, r.pool, meta, s, R, r.format) };
+        break;
+      }
+      case 'situation':
+        result = { result: await analyseSituation(r.input, s, R) };
+        break;
     }
+    self.postMessage({ id: r.id, ok: true, ...(result as object) });
   } catch (err) {
     self.postMessage({ id: r.id, ok: false, error: String(err) });
   }

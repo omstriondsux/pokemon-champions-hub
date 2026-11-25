@@ -16,6 +16,7 @@ const UI = {
   'nav.recruit': ['Reclutamiento', 'Recruitment'],
   'nav.meta': ['Meta Intelligence', 'Meta Intelligence'],
   'nav.coach': ['Coach', 'Coach'],
+  'nav.simulator': ['Simulador', 'Situation Sim'],
   'nav.soon': ['Próximamente', 'Coming soon'],
   'mode.singles': ['Individuales', 'Singles'],
   'mode.doubles': ['Dobles', 'Doubles'],

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, Info, Loader2, NotebookPen, RotateCcw, ShieldCheck, Swords, Target, X, Zap } from 'lucide-react';
-import type { AdvisorResult, Alternative, OpponentModel } from '@pch/engine';
+import { ARCHETYPE_LABEL, type AdvisorResult, type Alternative, type OpponentModel } from '@pch/engine';
 import { useApp } from '../lib/app';
 import { pct, resolveTeam } from '../lib/pokemon';
 import { runAnalysis } from '../lib/worker';
@@ -14,7 +14,7 @@ const ALT_ICON = { best: Target, conservative: ShieldCheck, aggressive: Zap } as
 export const PREFILL_KEY = 'pch.battlePrefill';
 
 export default function BattleAdvisor() {
-  const { settings, teams, pokemon, regulation, snapshot, t, names, metaIndex } = useApp();
+  const { settings, teams, pokemon, regulation, snapshot, t, names, metaIndex, historyReveals } = useApp();
   const [mode, setMode] = useState<Mode>(settings.defaultMode);
   const modeTeams = teams.filter((x) => x.format === mode);
   const [teamId, setTeamId] = useState<string | undefined>(settings.activeTeam[mode] ?? modeTeams[0]?.id);
@@ -49,6 +49,7 @@ export default function BattleAdvisor() {
         opponents: list,
         format: mode,
         trickRoom: tr,
+        history: historyReveals,
       });
       setRes(r);
     } catch (e) {
@@ -168,6 +169,11 @@ export default function BattleAdvisor() {
               <Loader2 size={15} className="animate-spin" /> Calculando enfrentamientos…
             </div>
           )}
+          {res && res.models[0]?.archetypes?.length ? (
+            <div className="mb-3 rounded-lg border border-accent-2/40 bg-accent-2/10 px-3 py-2 text-sm">
+              Arquetipo rival detectado: <b>{res.models[0].archetypes.map((a) => ARCHETYPE_LABEL[a]).join(' · ')}</b>. Las builds probables se han reponderado (p. ej. sets lentos en Trick Room).
+            </div>
+          ) : null}
           {res && <Results res={res.result} builds={builds} opps={opps} onLog={logBattle} />}
         </>
       )}
@@ -210,6 +216,7 @@ function Results({ res, builds, opps, onLog }: { res: AdvisorResult; builds: { s
                   <Section title="Por qué" items={a.strengths} tone="good" empty="Sin ventajas claras en 1v1." />
                   <Section title="Riesgos" items={a.risks} tone="bad" empty="Sin riesgos graves detectados en 1v1." />
                   <Section title="Condición de victoria" items={a.winConditions} tone="accent" />
+                  {a.supportFactors?.length > 0 && <Section title={`Apoyo (+${a.support.toFixed(2)} incluido en la puntuación)`} items={a.supportFactors} tone="accent" />}
                   <Section title="Elección de leads" items={a.leadFactors} tone="muted" />
                   <button className="btn mt-auto self-start" onClick={() => onLog(a)}>
                     <NotebookPen size={14} /> Registrar combate con esta selección

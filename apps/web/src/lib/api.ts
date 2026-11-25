@@ -17,6 +17,8 @@ export const api = {
   regulations: () => req<unknown[]>('/api/regulations'),
   metaIndex: () => req<{ month?: string; snapshots: { file: string; mode: string; ratingCutoff: number; month: string; battles: number; regulation: string }[] }>('/api/meta/index'),
   snapshot: <T>(file: string) => req<T>(`/api/meta/snapshot?file=${encodeURIComponent(file)}`),
+  metaStatus: () => req<unknown>('/api/meta/status'),
+  refreshMeta: () => req<{ started: boolean }>('/api/meta/refresh', { method: 'POST' }),
   i18n: (lang: string) => req<Record<string, Record<string, string>>>(`/api/i18n/${lang}`),
   exportAll: () => req<unknown>('/api/export'),
   importAll: (data: unknown, mode: 'merge' | 'replace') => req<{ imported: Record<string, number> }>(`/api/import?mode=${mode}`, { method: 'POST', body: JSON.stringify(data) }),

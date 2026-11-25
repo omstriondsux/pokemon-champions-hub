@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { adviseSelection, combinations, evaluatePair, makeBuild, opponentModel, pairScore, Regulation, registeredForme, selectionValue, validateSelection, validateTeam, type MetaSnapshot } from '../src/index.js';
+import { adviseSelection, combinations, evaluatePair, supportValue, makeBuild, opponentModel, pairScore, Regulation, registeredForme, selectionValue, validateSelection, validateTeam, type MetaSnapshot } from '../src/index.js';
 
 const ROOT = join(__dirname, '../../..');
 const MC = new Regulation(JSON.parse(readFileSync(join(ROOT, 'data/regulations/M-C.json'), 'utf8')));
@@ -116,5 +116,41 @@ describe('roster gaps between data sources', () => {
     expect(registeredForme('Charizard-Mega-Y')).toBe('Charizard');
     const m = await opponentModel('Floette-Eternal', DOUBLES);
     expect(m.candidates.some((c) => c.forme === 'Floette-Mega')).toBe(true);
+  });
+});
+
+describe('support value', () => {
+  it('credits Intimidate vs physical teams and Trick Room when slower; bounded', () => {
+    const ctx = { mySpeed: [50, 60], oppSpeed: [100, 120], oppPhysical: [1, 1], oppTrickRoom: false, doubles: true, team: [team[1]!, team[3]!] };
+    const r = supportValue([0, 1], [0, 1], ctx);
+    expect(r.value).toBeGreaterThan(0.1);
+    expect(r.value).toBeLessThanOrEqual(0.2);
+    expect(r.why.join(' ')).toMatch(/Intimidate/);
+    expect(r.why.join(' ')).toMatch(/Trick Room/);
+    const fast = supportValue([0, 1], [0, 1], { ...ctx, mySpeed: [200, 200], oppPhysical: [0, 0] });
+    expect(fast.value).toBeLessThan(r.value);
+  });
+});
+
+describe('Bayesian update and archetypes', () => {
+  it('revealed item filters candidates; inconsistent evidence synthesises a labelled set', async () => {
+    const base = await opponentModel('Garchomp', DOUBLES);
+    const items = new Set(base.candidates.map((c) => c.build.item));
+    const someItem = [...items][0]!;
+    const upd = await opponentModel('Garchomp', DOUBLES, { reveals: { item: someItem, moves: ['Earthquake'] } });
+    expect(upd.updatedByReveals).toBe(true);
+    expect(upd.candidates.every((c) => c.build.item === someItem)).toBe(true);
+    expect(upd.candidates.reduce((s, c) => s + c.weight, 0)).toBeCloseTo(1);
+    const odd = await opponentModel('Garchomp', DOUBLES, { reveals: { item: 'Leek' } });
+    expect(odd.candidates).toHaveLength(1);
+    expect(odd.candidates[0]!.build.item).toBe('Leek');
+  });
+
+  it('a Trick Room team raises the weight of min-speed spreads', async () => {
+    const plain = await opponentModel('Farigiraf', DOUBLES);
+    const tr = await opponentModel('Farigiraf', DOUBLES, { team: ['Farigiraf', 'Indeedee-F', 'Sinistcha'] });
+    expect(tr.archetypes).toContain('trickroom');
+    const slow = (m: typeof plain) => m.candidates.filter((c) => c.build.sp.spe === 0).reduce((s, c) => s + c.weight, 0);
+    expect(slow(tr)).toBeGreaterThanOrEqual(slow(plain));
   });
 });

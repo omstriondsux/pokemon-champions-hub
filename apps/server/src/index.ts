@@ -5,6 +5,7 @@ import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createApp } from './app.js';
 import { Store } from './db.js';
+import { Updater } from './updater.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../../..');
 const DATA = join(ROOT, 'data');
@@ -15,7 +16,9 @@ const store = new Store(process.env.PCH_DB ?? join(DATA, 'hub.db'));
 const backup = store.backup(join(DATA, 'backups'));
 if (backup) console.log(`Backup: ${relative(ROOT, backup)}`);
 
-const app = createApp({ store, dataDir: DATA });
+const updater = new Updater(ROOT, store);
+updater.start();
+const app = createApp({ store, dataDir: DATA, updater });
 
 // Production: serve the built web app from the same port.
 const WEB_DIST = join(ROOT, 'apps/web/dist');

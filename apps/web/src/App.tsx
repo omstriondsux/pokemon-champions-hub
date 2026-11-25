@@ -1,5 +1,5 @@
 import { useEffect, useState, type ComponentType } from 'react';
-import { Activity, BookOpen, Calculator, Gauge, History, LayoutDashboard, Lock, MessageSquare, Settings as SettingsIcon, Sparkles, Swords, Users, Wrench, Boxes } from 'lucide-react';
+import { Activity, BookOpen, FlaskConical, Calculator, Gauge, History, LayoutDashboard, Lock, MessageSquare, Settings as SettingsIcon, Sparkles, Swords, Users, Wrench, Boxes } from 'lucide-react';
 import { useApp } from './lib/app';
 import type { UIKey } from './lib/i18n';
 import Dashboard from './pages/Dashboard';
@@ -10,6 +10,12 @@ import DamageCalc from './pages/DamageCalc';
 import SpeedTiers from './pages/SpeedTiers';
 import BattleHistory from './pages/BattleHistory';
 import SettingsPage from './pages/Settings';
+import MetaIntelligence from './pages/MetaIntelligence';
+import BuildOptimizer from './pages/BuildOptimizer';
+import SquadBuilder from './pages/SquadBuilder';
+import Recruitment from './pages/Recruitment';
+import Simulator from './pages/Simulator';
+import Coach from './pages/Coach';
 
 interface Route {
   id: string;
@@ -26,12 +32,13 @@ export const ROUTES: Route[] = [
   { id: 'teams', key: 'nav.teams', icon: Users, page: Teams },
   { id: 'calc', key: 'nav.calc', icon: Calculator, page: DamageCalc },
   { id: 'speed', key: 'nav.speed', icon: Gauge, page: SpeedTiers },
+  { id: 'simulator', key: 'nav.simulator', icon: FlaskConical, page: Simulator },
   { id: 'history', key: 'nav.history', icon: History, page: BattleHistory },
-  { id: 'meta', key: 'nav.meta', icon: Activity, phase: 'F2' },
-  { id: 'optimizer', key: 'nav.optimizer', icon: Wrench, phase: 'F2' },
-  { id: 'squad', key: 'nav.squad', icon: Sparkles, phase: 'F2' },
-  { id: 'recruit', key: 'nav.recruit', icon: BookOpen, phase: 'F3' },
-  { id: 'coach', key: 'nav.coach', icon: MessageSquare, phase: 'F4' },
+  { id: 'meta', key: 'nav.meta', icon: Activity, page: MetaIntelligence },
+  { id: 'optimizer', key: 'nav.optimizer', icon: Wrench, page: BuildOptimizer },
+  { id: 'squad', key: 'nav.squad', icon: Sparkles, page: SquadBuilder },
+  { id: 'recruit', key: 'nav.recruit', icon: BookOpen, page: Recruitment },
+  { id: 'coach', key: 'nav.coach', icon: MessageSquare, page: Coach },
   { id: 'settings', key: 'nav.settings', icon: SettingsIcon, page: SettingsPage },
 ];
 

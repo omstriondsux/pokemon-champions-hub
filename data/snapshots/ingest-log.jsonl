@@ -4,3 +4,15 @@
 {"at":"2026-11-25T03:18:25.967Z","level":"info","mode":"doubles","cutoff":0,"month":"2026-10","battles":1649648,"species":336}
 {"at":"2026-11-25T03:18:34.089Z","level":"info","mode":"doubles","cutoff":1500,"month":"2026-10","battles":1649648,"species":323}
 {"at":"2026-11-25T03:19:18.777Z","level":"info","mode":"doubles","cutoff":1630,"month":"2026-10","battles":1649648,"species":287}
+{"at":"2026-11-25T06:31:51.968Z","level":"info","mode":"singles","cutoff":0,"month":"2026-09","battles":14242,"species":225}
+{"at":"2026-11-25T06:31:54.102Z","level":"info","mode":"singles","cutoff":1500,"month":"2026-09","battles":14242,"species":225}
+{"at":"2026-11-25T06:32:00.185Z","level":"info","mode":"singles","cutoff":1630,"month":"2026-09","battles":14242,"species":217}
+{"at":"2026-11-25T06:32:16.587Z","level":"info","mode":"doubles","cutoff":0,"month":"2026-09","battles":326464,"species":306}
+{"at":"2026-11-25T06:32:18.321Z","level":"info","mode":"doubles","cutoff":1500,"month":"2026-09","battles":326464,"species":294}
+{"at":"2026-11-25T06:32:50.343Z","level":"info","mode":"doubles","cutoff":1630,"month":"2026-09","battles":326464,"species":268}
+{"at":"2026-11-25T06:32:51.758Z","level":"info","mode":"singles","cutoff":0,"month":"2026-10","battles":87848,"species":319}
+{"at":"2026-11-25T06:33:10.735Z","level":"info","mode":"singles","cutoff":1500,"month":"2026-10","battles":87848,"species":312}
+{"at":"2026-11-25T06:33:14.211Z","level":"info","mode":"singles","cutoff":1630,"month":"2026-10","battles":87848,"species":274}
+{"at":"2026-11-25T06:34:05.517Z","level":"info","mode":"doubles","cutoff":0,"month":"2026-10","battles":1649648,"species":336}
+{"at":"2026-11-25T06:34:08.658Z","level":"info","mode":"doubles","cutoff":1500,"month":"2026-10","battles":1649648,"species":323}
+{"at":"2026-11-25T06:35:17.560Z","level":"info","mode":"doubles","cutoff":1630,"month":"2026-10","battles":1649648,"species":287}
