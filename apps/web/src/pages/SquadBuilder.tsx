@@ -50,7 +50,7 @@ export default function SquadBuilder() {
     <div className="fade-up">
       <PageHeader
         title="Squad Builder"
-        subtitle="Construye equipos con TU inventario. Fija los Pokémon obligatorios y el sistema completa el resto según el objetivo."
+        subtitle="Construye equipos con los Pokémon disponibles (los 60 más usados, más tus favoritos y builds editadas). Fija los obligatorios y el sistema completa el resto según el objetivo."
       />
       <div className="grid gap-4 xl:grid-cols-[380px_1fr]">
         <div className="panel p-4">

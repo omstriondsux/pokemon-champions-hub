@@ -13,22 +13,37 @@ const STATUS_COST: Record<PokemonStatus, number> = {
   unavailable: 99,
 };
 
-export function poolFrom(pokemon: OwnedPokemon[], speciesName: (s: string) => string, opts: { includePending?: boolean } = {}): PoolEntry[] {
+/** Catalog species considered by the optimizers: the most used ones (searching all ~380 would take minutes). */
+export const CATALOG_POOL_TOP = 60;
+
+export function poolFrom(pokemon: OwnedPokemon[], speciesName: (s: string) => string, opts: { includePending?: boolean; mode?: 'singles' | 'doubles' } = {}): PoolEntry[] {
+  const tag = opts.mode === 'singles' ? '-s' : '-d';
+  const catalogTop = new Set(
+    pokemon
+      .filter((p) => p.source === 'catalog')
+      .sort((a, b) => (b.usage ?? 0) - (a.usage ?? 0))
+      .slice(0, CATALOG_POOL_TOP)
+      .map((p) => p.id),
+  );
   return pokemon
     .filter((p) => p.status !== 'unavailable' && (opts.includePending || p.status === 'available' || p.status === 'temporary'))
-    .flatMap((p) =>
-      p.builds.map((b) => ({
+    .filter((p) => p.source !== 'catalog' || p.favorite || catalogTop.has(p.id))
+    .flatMap((p) => {
+      // From untouched catalog entries take only the best build for this mode.
+      const builds = p.source === 'catalog' ? [p.builds.find((b) => b.id.includes(tag)) ?? p.builds[0]!].filter(Boolean) : p.builds;
+      return builds.map((b) => ({
         id: b.id,
         ownerId: p.id,
         label: `${p.nickname || speciesName(p.species)} · ${b.name}`,
         build: b.build,
         favorite: p.favorite,
         cost: STATUS_COST[p.status] + (p.modificationCost ?? 0) / 500,
-      })),
-    );
+      }));
+    });
 }
 
 export function usePool(includePending: boolean) {
-  const { pokemon, names } = useApp();
-  return useMemo(() => poolFrom(pokemon, names.species, { includePending }), [pokemon, names, includePending]);
+  const { pokemon, names, settings } = useApp();
+  const mode = settings.defaultMode;
+  return useMemo(() => poolFrom(pokemon, names.species, { includePending, mode }), [pokemon, names, includePending, mode]);
 }

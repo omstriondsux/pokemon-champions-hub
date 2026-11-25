@@ -119,7 +119,17 @@ function TeamEditor({ value, onClose }: { value: Team; onClose: () => void }) {
   const [team, setTeam] = useState<Team>({ ...value, regulation: value.regulation || regulation.id });
   const issues = useTeamIssues(team);
   const max = regulation.format(team.format).teamSize.value.max;
-  const options = useMemo(() => pokemon.filter((p) => p.status !== 'unavailable').flatMap((p) => p.builds.map((b) => ({ p, b }))), [pokemon]);
+  const [q, setQ] = useState('');
+  const options = useMemo(() => {
+    const tag = team.format === 'singles' ? '-s' : '-d';
+    const id = q.toLowerCase();
+    return pokemon
+      .filter((p) => p.status !== 'unavailable')
+      .filter((p) => !id || `${p.species} ${names.species(p.species)}`.toLowerCase().includes(id))
+      // untouched catalog entries: only builds for this format (meta "dobles"/"individuales")
+      .flatMap((p) => (p.source === 'catalog' ? p.builds.filter((b) => b.id.includes(tag) || b.id.includes('-h')) : p.builds).map((b) => ({ p, b })))
+      .slice(0, 120);
+  }, [pokemon, q, names, team.format]);
   const inTeam = (pid: string, bid: string) => team.members.some((m) => m.pokemonId === pid && m.buildId === bid);
   const isNew = !teams.some((x) => x.id === team.id);
 
@@ -157,8 +167,9 @@ function TeamEditor({ value, onClose }: { value: Team; onClose: () => void }) {
         })}
         {team.members.length === 0 && <span className="p-2 text-xs text-faint">Elige builds de la lista de abajo.</span>}
       </div>
+      <input className="input mb-2" placeholder="Busca un Pokémon para añadirlo (ES o EN)…" value={q} onChange={(e) => setQ(e.target.value)} autoFocus />
       {options.length === 0 ? (
-        <Empty>Primero añade Pokémon y builds en "Mis Pokémon".</Empty>
+        <Empty>{q ? 'Ningún Pokémon coincide.' : 'Primero añade Pokémon y builds en «Mis Pokémon».'}</Empty>
       ) : (
         <div className="grid max-h-72 grid-cols-2 gap-1.5 overflow-auto md:grid-cols-3">
           {options.map(({ p, b }) => {

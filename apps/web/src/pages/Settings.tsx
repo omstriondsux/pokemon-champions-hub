@@ -47,6 +47,9 @@ export default function Settings() {
         <Field label="Idioma (interfaz y nombres de movimientos, habilidades y objetos)">
           <Segmented value={settings.lang} onChange={(lang) => saveSettings({ lang })} options={[{ value: 'es', label: 'Español' }, { value: 'en', label: 'English' }]} />
         </Field>
+        <Field label="Tengo todos los Pokémon" hint="Activado: todos los Pokémon de la regulación están disponibles con sus builds del meta. Desactivado: solo los que añadas tú.">
+          <Segmented value={settings.ownAll ? 'yes' : 'no'} onChange={(v) => saveSettings({ ownAll: v === 'yes' })} options={[{ value: 'yes', label: 'Sí, todos' }, { value: 'no', label: 'Solo los míos' }]} />
+        </Field>
         <Field label="Tema">
           <Segmented value={settings.theme} onChange={(theme) => saveSettings({ theme })} options={[{ value: 'dark', label: 'Oscuro' }, { value: 'light', label: 'Claro' }]} />
         </Field>

@@ -206,8 +206,10 @@ export function countUnverified(obj: unknown): number {
 function GettingStarted({ mode }: { mode: Mode }) {
   const { pokemon, teams, settings, battles } = useApp();
   const steps = [
-    { done: pokemon.length > 0, title: 'Añade tus Pokémon', text: 'Uno a uno o pegando un equipo en formato Showdown.', href: '#/pokemon', cta: 'Ir a Mis Pokémon' },
-    { done: teams.some((x) => x.format === mode), title: `Crea un equipo de ${mode === 'doubles' ? 'dobles' : 'individuales'}`, text: 'Elige 6 builds: es el equipo con el que buscas partida.', href: '#/teams', cta: 'Crear equipo' },
+    settings.ownAll
+      ? { done: true, title: 'Tienes todos los Pokémon', text: 'Cada uno con sus builds más usadas del meta, listas para usar.', href: '#/pokemon', cta: 'Ver Pokémon' }
+      : { done: pokemon.length > 0, title: 'Añade tus Pokémon', text: 'Uno a uno o pegando un equipo en formato Showdown.', href: '#/pokemon', cta: 'Ir a Mis Pokémon' },
+    { done: teams.some((x) => x.format === mode), title: `Crea un equipo de ${mode === 'doubles' ? 'dobles' : 'individuales'}`, text: 'Elige 6 Pokémon tú mismo o deja que el Squad Builder lo arme.', href: '#/squad', cta: 'Armar equipo' },
     { done: !!settings.activeTeam[mode], title: 'Márcalo como equipo activo', text: 'Arriba a la derecha, en «Equipo». Todo el análisis usa ese equipo.', href: '#/teams', cta: 'Elegir equipo' },
     { done: battles.length > 0, title: 'Usa el Battle Advisor en tu próximo combate', text: 'Escribe los 6 rivales en la vista previa y te dice a quién sacar.', href: '#/advisor', cta: 'Abrir Advisor' },
   ];

@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { activeRegulation, Regulation, type MetaSnapshot } from '@pch/engine';
 import { api } from './api';
 import { makeNames, makeT, type NameTable, type Names } from './i18n';
+import { buildCatalog, mergeCatalog } from './catalog';
 import { DEFAULT_SETTINGS, type BattleRecord, type Mode, type OwnedPokemon, type Settings, type Team } from './types';
 
 interface MetaIndexEntry {
@@ -29,7 +30,9 @@ interface AppState {
   previousSnapshot: (mode: Mode) => Promise<MetaSnapshot | undefined>;
   /** What you have seen each rival species reveal in your battles. */
   historyReveals: Record<string, { item?: string; moves?: string[]; ability?: string }[]>;
+  /** Inventory as the app sees it: full catalog + your edits when settings.ownAll, else only what you saved. */
   pokemon: OwnedPokemon[];
+  catalogReady: boolean;
   teams: Team[];
   battles: BattleRecord[];
   reload: () => Promise<void>;
@@ -53,14 +56,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [es, setEs] = useState<NameTable>({});
   const [regulations, setRegulations] = useState<Regulation[]>([]);
   const [metaIndex, setMetaIndex] = useState<MetaIndexEntry[]>([]);
-  const [pokemon, setPokemon] = useState<OwnedPokemon[]>([]);
+  const [saved, setSaved] = useState<OwnedPokemon[]>([]);
+  const [catalog, setCatalog] = useState<OwnedPokemon[]>([]);
+  const [catalogReady, setCatalogReady] = useState(false);
   const [teams, setTeams] = useState<Team[]>([]);
   const [battles, setBattles] = useState<BattleRecord[]>([]);
   const snapCache = useRef(new Map<string, Promise<MetaSnapshot | undefined>>());
 
   const reload = useCallback(async () => {
     const [p, t, b] = await Promise.all([api.list<OwnedPokemon>('pokemon'), api.list<Team>('teams'), api.list<BattleRecord>('battles')]);
-    setPokemon(p);
+    setSaved(p);
     setTeams(t);
     setBattles(b);
   }, []);
@@ -117,6 +122,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const snapshot = useCallback((mode: Mode) => load(pickSnapshot(mode, 0)), [load, pickSnapshot]);
   const previousSnapshot = useCallback((mode: Mode) => load(pickSnapshot(mode, 1)), [load, pickSnapshot]);
 
+  // Build the catalog once the regulation and meta index are known (≈1 s, runs after first paint).
+  useEffect(() => {
+    if (!regulation || !metaIndex.length) return;
+    let live = true;
+    setTimeout(async () => {
+      const [d, s] = await Promise.all([snapshot('doubles'), snapshot('singles')]);
+      const c = await buildCatalog(regulation, d, s);
+      if (live) {
+        setCatalog(c);
+        setCatalogReady(true);
+      }
+    }, 50);
+    return () => {
+      live = false;
+    };
+  }, [regulation, metaIndex, snapshot]);
+
+  const pokemon = useMemo(() => (settings.ownAll ? mergeCatalog(catalog, saved) : saved.map((p) => ({ ...p, source: 'custom' as const }))), [settings.ownAll, catalog, saved]);
+
   const historyReveals = useMemo(() => {
     const out: Record<string, { item?: string; moves?: string[]; ability?: string }[]> = {};
     for (const b of battles) for (const [sp, r] of Object.entries(b.opponentReveals ?? {})) (out[sp] ??= []).push(r);
@@ -153,6 +177,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     previousSnapshot,
     historyReveals,
     pokemon,
+    catalogReady: catalogReady || !settings.ownAll,
     teams,
     battles,
     reload,

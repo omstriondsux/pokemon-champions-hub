@@ -23,6 +23,9 @@ export interface OwnedPokemon {
   notes: string;
   builds: OwnedBuild[];
   updatedAt?: string;
+  /** catalog = auto-generated from the meta; edited = catalog entry you changed; custom = added by you. */
+  source?: 'catalog' | 'edited' | 'custom';
+  usage?: number;
 }
 
 export interface Team {
@@ -62,6 +65,8 @@ export interface Settings {
   ratingCutoff: number;
   vpCostPerPoint: number | null;
   activeTeam: Partial<Record<Mode, string>>;
+  /** Assume every Pokémon of the regulation is owned (catalog with meta builds). */
+  ownAll: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -71,6 +76,7 @@ export const DEFAULT_SETTINGS: Settings = {
   ratingCutoff: 1630,
   vpCostPerPoint: null,
   activeTeam: {},
+  ownAll: true,
 };
 
 export const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);

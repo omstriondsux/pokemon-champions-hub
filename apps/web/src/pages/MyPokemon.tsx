@@ -35,64 +35,73 @@ export const newOwned = (species: string): OwnedPokemon => ({
 });
 
 export default function MyPokemon() {
-  const { pokemon, t, names, save, remove } = useApp();
+  const { pokemon, t, names, save, remove, settings, catalogReady } = useApp();
+  const ownAll = settings.ownAll;
   const [editing, setEditing] = useState<OwnedPokemon>();
   const [adding, setAdding] = useState(false);
   const [importing, setImporting] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'favorites' | PokemonStatus>('all');
+  const [filter, setFilter] = useState<'all' | 'favorites' | 'edited' | PokemonStatus>('all');
   const [q, setQ] = useState('');
+  const [shown, setShown] = useState(48);
 
   const list = useMemo(
     () =>
       pokemon
-        .filter((p) => (filter === 'all' ? true : filter === 'favorites' ? p.favorite : p.status === filter))
+        .filter((p) => (filter === 'all' ? true : filter === 'favorites' ? p.favorite : filter === 'edited' ? p.source !== 'catalog' : p.status === filter))
         .filter((p) => !q || `${p.species} ${names.species(p.species)} ${p.nickname}`.toLowerCase().includes(q.toLowerCase()))
-        .sort((a, b) => Number(b.favorite) - Number(a.favorite) || a.species.localeCompare(b.species)),
-    [pokemon, filter, q, names],
+        .sort((a, b) => Number(b.favorite) - Number(a.favorite) || (ownAll ? (b.usage ?? 0) - (a.usage ?? 0) : 0) || a.species.localeCompare(b.species)),
+    [pokemon, filter, q, names, ownAll],
   );
-
-  const copyAll = () => navigator.clipboard.writeText(exportPaste(pokemon.flatMap((p) => p.builds.map((b) => b.build))));
+  const edited = pokemon.filter((p) => p.source !== 'catalog').length;
+  const copyAll = () => navigator.clipboard.writeText(exportPaste(pokemon.filter((p) => p.source !== 'catalog' || p.favorite).flatMap((p) => p.builds.map((b) => b.build))));
+  const filters: ('all' | 'favorites' | 'edited' | PokemonStatus)[] = ownAll ? ['all', 'favorites', 'edited'] : ['all', 'favorites', ...STATUSES];
 
   return (
     <div className="fade-up">
       <PageHeader
-        title={t('nav.mypokemon')}
-        subtitle={`${pokemon.length} Pokémon · ${pokemon.reduce((s, p) => s + p.builds.length, 0)} builds`}
+        title={ownAll ? 'Pokémon' : t('nav.mypokemon')}
+        subtitle={
+          ownAll
+            ? `Tienes los ${pokemon.length} Pokémon de la regulación, cada uno con sus builds más usadas del meta. Pulsa cualquiera para ver o ajustar sus builds: tus cambios se guardan como tuyos.`
+            : `${pokemon.length} Pokémon · ${pokemon.reduce((s, p) => s + p.builds.length, 0)} builds`
+        }
         actions={
           <>
             <button className="btn" onClick={() => setImporting(true)}>
-              <ClipboardPaste size={15} /> Importar (Showdown)
+              <ClipboardPaste size={15} /> Importar builds (Showdown)
             </button>
-            <button className="btn" onClick={copyAll} disabled={!pokemon.length}>
-              <Copy size={15} /> Copiar todo
+            <button className="btn" onClick={copyAll} disabled={!pokemon.length} title={ownAll ? 'Copia tus favoritos y builds editadas' : undefined}>
+              <Copy size={15} /> {ownAll ? 'Copiar mis builds' : 'Copiar todo'}
             </button>
-            <button className="btn btn-primary" onClick={() => setAdding(true)}>
-              <Plus size={15} /> {t('common.add')}
-            </button>
+            {!ownAll && (
+              <button className="btn btn-primary" onClick={() => setAdding(true)}>
+                <Plus size={15} /> {t('common.add')}
+              </button>
+            )}
           </>
         }
       />
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <input className="input max-w-60" placeholder={t('common.search')} value={q} onChange={(e) => setQ(e.target.value)} />
-        {(['all', 'favorites', ...STATUSES] as const).map((f) => (
-          <button key={f} onClick={() => setFilter(f)} className={`chip cursor-pointer ${filter === f ? 'border-accent text-text' : ''}`}>
-            {f === 'all' ? 'Todos' : f === 'favorites' ? '★ Favoritos' : t(`status.${f}`)}
+        <input className="input max-w-60" placeholder={t('common.search')} value={q} onChange={(e) => (setQ(e.target.value), setShown(48))} autoFocus />
+        {filters.map((f) => (
+          <button key={f} onClick={() => (setFilter(f), setShown(48))} className={`chip cursor-pointer ${filter === f ? 'border-accent text-text' : ''}`}>
+            {f === 'all' ? 'Todos' : f === 'favorites' ? '★ Favoritos' : f === 'edited' ? `✎ Editados (${edited})` : t(`status.${f}`)}
           </button>
         ))}
+        {ownAll && <span className="ml-auto text-xs text-faint">Ordenados por uso en el meta · ★ marca tus favoritos</span>}
       </div>
 
-      {list.length === 0 ? (
+      {!catalogReady ? (
+        <Empty>Preparando el catálogo con las builds del meta…</Empty>
+      ) : list.length === 0 ? (
         <Empty>
           {pokemon.length === 0 ? (
             <>
-              Tu inventario está vacío. Añade los Pokémon que tienes o pega un equipo en formato Showdown.
+              Tu inventario está vacío. Añade tus Pokémon o activa «Tengo todos los Pokémon» en Ajustes.
               <div className="mt-3 flex justify-center gap-2">
                 <button className="btn btn-primary" onClick={() => setAdding(true)}>
                   <Plus size={15} /> Añadir Pokémon
-                </button>
-                <button className="btn" onClick={() => setImporting(true)}>
-                  <ClipboardPaste size={15} /> Importar
                 </button>
               </div>
             </>
@@ -101,11 +110,20 @@ export default function MyPokemon() {
           )}
         </Empty>
       ) : (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-3">
-          {list.map((p) => (
-            <PokemonCard key={p.id} p={p} onOpen={() => setEditing(structuredClone(p))} onFav={() => save('pokemon', { ...p, favorite: !p.favorite })} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-3">
+            {list.slice(0, shown).map((p) => (
+              <PokemonCard key={p.id} p={p} onOpen={() => setEditing(structuredClone(p))} onFav={() => save('pokemon', { ...p, favorite: !p.favorite })} />
+            ))}
+          </div>
+          {list.length > shown && (
+            <div className="mt-4 text-center">
+              <button className="btn" onClick={() => setShown(shown + 96)}>
+                Mostrar más ({list.length - shown} restantes)
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {adding && <AddModal onClose={() => setAdding(false)} onPick={(s) => (setAdding(false), setEditing(newOwned(s)))} />}
@@ -118,12 +136,18 @@ export default function MyPokemon() {
             await save('pokemon', p);
             setEditing(undefined);
           }}
-          onDelete={async () => {
-            if (confirm(`¿Eliminar ${editing.species} y sus ${editing.builds.length} builds? No se puede deshacer (salvo desde una copia de seguridad).`)) {
-              await remove('pokemon', editing.id);
-              setEditing(undefined);
-            }
-          }}
+          onDelete={
+            editing.source === 'catalog'
+              ? undefined
+              : async () => {
+                  const msg = editing.source === 'edited' ? `¿Descartar tus cambios en ${editing.species} y volver a las builds del meta?` : `¿Eliminar ${editing.species} y sus ${editing.builds.length} builds?`;
+                  if (confirm(msg)) {
+                    await remove('pokemon', editing.id);
+                    setEditing(undefined);
+                  }
+                }
+          }
+          deleteLabel={editing.source === 'edited' ? 'Restaurar builds del meta' : undefined}
         />
       )}
     </div>
@@ -132,7 +156,7 @@ export default function MyPokemon() {
 
 function PokemonCard({ p, onOpen, onFav }: { p: OwnedPokemon; onOpen: () => void; onFav: () => void }) {
   const { names, t } = useApp();
-  const first = p.builds[0]?.build;
+  const first = p.source === 'catalog' ? undefined : p.builds[0]?.build;
   const issues = useLegality(first);
   const errors = issues.filter((i) => i.severity === 'error').length;
   return (
@@ -149,10 +173,17 @@ function PokemonCard({ p, onOpen, onFav }: { p: OwnedPokemon; onOpen: () => void
         <div className="min-w-0">
           <div className="truncate font-semibold">{p.nickname || names.species(p.species)}</div>
           <Types species={p.species} small />
-          <div className="mt-1 flex items-center gap-1.5 text-[11px] text-muted">
-            <span className={`h-2 w-2 rounded-full ${STATUS_DOT[p.status]}`} />
-            {t(`status.${p.status}`)}
-          </div>
+          {p.source === 'catalog' || p.source === 'edited' ? (
+            <div className="mt-1 text-[11px] text-muted">
+              {p.usage ? `${(p.usage * 100).toFixed(1)}% de uso` : 'poco usado'}
+              {p.source === 'edited' && <span className="ml-1.5 text-accent">· ✎ editado</span>}
+            </div>
+          ) : (
+            <div className="mt-1 flex items-center gap-1.5 text-[11px] text-muted">
+              <span className={`h-2 w-2 rounded-full ${STATUS_DOT[p.status]}`} />
+              {t(`status.${p.status}`)}
+            </div>
+          )}
         </div>
       </div>
       <div className="mt-2 space-y-1 border-t border-line pt-2 text-xs text-muted">
@@ -221,8 +252,9 @@ function ImportModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-function EditModal({ value, onClose, onSave, onDelete }: { value: OwnedPokemon; onClose: () => void; onSave: (p: OwnedPokemon) => void; onDelete: () => void }) {
-  const { t, names, pokemon } = useApp();
+function EditModal({ value, onClose, onSave, onDelete, deleteLabel }: { value: OwnedPokemon; onClose: () => void; onSave: (p: OwnedPokemon) => void; onDelete?: () => void; deleteLabel?: string }) {
+  const { t, names, pokemon, settings } = useApp();
+  const ownAll = settings.ownAll;
   const [p, setP] = useState(value);
   const [active, setActive] = useState(p.builds[0]?.id);
   const isNew = !pokemon.some((x) => x.id === p.id);
@@ -236,6 +268,7 @@ function EditModal({ value, onClose, onSave, onDelete }: { value: OwnedPokemon; 
           <label className="label">Apodo</label>
           <input className="input" value={p.nickname} onChange={(e) => setP({ ...p, nickname: e.target.value })} />
         </div>
+        {!ownAll && (<>
         <div>
           <label className="label">Disponibilidad</label>
           <select className="input" value={p.status} onChange={(e) => setP({ ...p, status: e.target.value as PokemonStatus })}>
@@ -258,6 +291,12 @@ function EditModal({ value, onClose, onSave, onDelete }: { value: OwnedPokemon; 
             <input type="checkbox" checked={p.trainable} onChange={(e) => setP({ ...p, trainable: e.target.checked })} /> Entrenable
           </label>
         </div>
+        </>)}
+        {ownAll && (
+          <label className="flex items-end gap-1.5 pb-1.5 text-sm">
+            <input type="checkbox" checked={p.favorite} onChange={(e) => setP({ ...p, favorite: e.target.checked })} /> ★ Favorito (el Squad Builder siempre lo tiene en cuenta)
+          </label>
+        )}
       </div>
 
       <div className="mb-3 flex flex-wrap items-center gap-1.5 border-b border-line pb-3">
@@ -315,9 +354,9 @@ function EditModal({ value, onClose, onSave, onDelete }: { value: OwnedPokemon; 
         <textarea className="input h-16" value={p.notes} onChange={(e) => setP({ ...p, notes: e.target.value })} />
       </div>
       <div className="mt-4 flex justify-between">
-        {!isNew ? (
+        {!isNew && onDelete ? (
           <button className="btn text-bad" onClick={onDelete}>
-            <Trash2 size={14} /> Eliminar Pokémon
+            <Trash2 size={14} /> {deleteLabel ?? 'Eliminar Pokémon'}
           </button>
         ) : (
           <span />
