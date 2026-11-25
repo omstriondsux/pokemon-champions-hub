@@ -1,6 +1,7 @@
 import { useEffect, useState, type ComponentType } from 'react';
-import { Activity, BookOpen, FlaskConical, Calculator, Gauge, History, LayoutDashboard, MessageSquare, Settings as SettingsIcon, Sparkles, Swords, Users, Wrench, Boxes, Moon, Sun } from 'lucide-react';
+import { Activity, BookOpen, FlaskConical, Calculator, Gauge, History, LayoutDashboard, MessageSquare, Settings as SettingsIcon, Sparkles, Swords, Users, Wrench, Boxes, Moon, Sun, Menu } from 'lucide-react';
 import { useApp } from './lib/app';
+import { STATIC } from './lib/api';
 import type { UIKey } from './lib/i18n';
 import type { Mode } from './lib/types';
 import { MasterBall, MASTER_BALL_FAVICON } from './components/MasterBall';
@@ -122,24 +123,33 @@ function NavItem({ r, active }: { r: Route; active: boolean }) {
 }
 
 /** Global context bar: the mode and active team every page uses. */
-function TopBar({ current }: { current: Route }) {
+function TopBar({ current, onMenu }: { current: Route; onMenu: () => void }) {
   const { settings, saveSettings, teams, pokemon, regulation } = useApp();
   const mode = settings.defaultMode;
   const modeTeams = teams.filter((x) => x.format === mode);
   const active = teams.find((x) => x.id === settings.activeTeam[mode]);
   const { builds } = resolveTeam(active, pokemon);
   return (
-    <div className="sticky top-0 z-20 flex flex-wrap items-center gap-3 border-b border-line bg-bg/85 px-8 py-2.5 backdrop-blur">
-      <span className="text-sm text-faint">
+    <div className="sticky top-0 z-20 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line bg-bg/85 px-3 py-2.5 backdrop-blur sm:px-8">
+      <button className="btn btn-ghost p-1.5 lg:hidden" aria-label="Abrir menú" onClick={onMenu}>
+        <Menu size={20} />
+      </button>
+      <a href="#/dashboard" className="flex items-center gap-2 lg:hidden" aria-label="Inicio">
+        <MasterBall size={26} />
+        <span className="font-display text-base leading-none font-bold tracking-wide">
+          CHAMPIONS<span className="text-accent">HUB</span>
+        </span>
+      </a>
+      <span className="hidden text-sm text-faint lg:inline">
         {GROUPS.find((g) => g.routes.includes(current))?.title ?? 'Ajustes'} <span className="mx-1">/</span>
         <span className="text-text">{current.hint}</span>
       </span>
-      <div className="ml-auto flex items-center gap-3">
+      <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto sm:gap-3">
         <Segmented<Mode> value={mode} onChange={(m) => saveSettings({ defaultMode: m })} options={[{ value: 'doubles', label: 'Dobles' }, { value: 'singles', label: 'Individuales' }]} />
         <div className="flex items-center gap-2">
-          <span className="text-xs text-faint">Equipo</span>
+          <span className="hidden text-xs text-faint sm:inline">Equipo</span>
           <select
-            className="input w-44 py-1"
+            className="input w-36 py-1 sm:w-44"
             value={active?.id ?? ''}
             onChange={(e) => (e.target.value === '__new' ? navigate('teams') : saveSettings({ activeTeam: { ...settings.activeTeam, [mode]: e.target.value } }))}
           >
@@ -157,10 +167,10 @@ function TopBar({ current }: { current: Route }) {
             ))}
           </span>
         </div>
-        <span className="chip" title={`Regulación activa: ${regulation.pack.validFrom.value} → ${regulation.pack.validTo.value}`}>
+        <span className="chip hidden sm:inline-flex" title={`Regulación activa: ${regulation.pack.validFrom.value} → ${regulation.pack.validTo.value}`}>
           Reg. {regulation.id}
         </span>
-        <button className="btn btn-ghost p-1.5" title="Cambiar tema" onClick={() => saveSettings({ theme: settings.theme === 'dark' ? 'light' : 'dark' })}>
+        <button className="btn btn-ghost hidden p-1.5 sm:inline-flex" title="Cambiar tema" onClick={() => saveSettings({ theme: settings.theme === 'dark' ? 'light' : 'dark' })}>
           {settings.theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
         </button>
       </div>
@@ -174,15 +184,17 @@ export default function App() {
   useFavicon();
   const current = ROUTES.find((r) => r.id === route) ?? ROUTES[0]!;
   const Page = current.page;
+  const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => setMenuOpen(false), [route]);
 
   if (error)
     return (
       <div className="grid h-full place-items-center p-6">
         <div className="panel max-w-md p-6 text-sm">
           <MasterBall size={48} className="mb-3" />
-          <p className="mb-2 font-semibold text-bad">Servidor no disponible</p>
+          <p className="mb-2 font-semibold text-bad">{STATIC ? 'No se pudo cargar' : 'Servidor no disponible'}</p>
           <p className="text-muted">{error}</p>
-          <p className="mt-3 text-muted">Ábrelo con «Iniciar Champions Hub» del Escritorio.</p>
+          <p className="mt-3 text-muted">{STATIC ? 'Recarga la página. Si sigue fallando, prueba en otro navegador.' : 'Ábrelo con «Iniciar Champions Hub» del Escritorio.'}</p>
         </div>
       </div>
     );
@@ -197,8 +209,11 @@ export default function App() {
     );
 
   return (
-    <div className="grid h-full grid-cols-[248px_1fr]">
-      <aside className="flex flex-col border-r border-line bg-panel/60">
+    <div className="h-full lg:grid lg:grid-cols-[248px_1fr]">
+      {menuOpen && <div className="fixed inset-0 z-30 bg-black/60 lg:hidden" onClick={() => setMenuOpen(false)} />}
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 flex w-[272px] max-w-[85vw] flex-col border-r border-line bg-panel transition-transform duration-200 lg:static lg:z-auto lg:w-auto lg:max-w-none lg:translate-x-0 lg:bg-panel/60 ${menuOpen ? 'translate-x-0' : '-translate-x-full'}`}
+      >
         <a href="#/dashboard" className="flex items-center gap-3 px-4 pt-4 pb-3">
           <MasterBall size={40} />
           <div>
@@ -230,10 +245,10 @@ export default function App() {
           </p>
         </div>
       </aside>
-      <main className="overflow-auto">
-        <TopBar current={current} />
+      <main className="h-full overflow-auto">
+        <TopBar current={current} onMenu={() => setMenuOpen(true)} />
         {/* Pages read the global mode on mount; keying by mode re-mounts them when it changes. */}
-        <div className="mx-auto max-w-[1400px] px-8 py-6">{<Page key={`${current.id}-${settings.defaultMode}`} />}</div>
+        <div className="mx-auto max-w-[1400px] px-3 py-4 sm:px-8 sm:py-6">{<Page key={`${current.id}-${settings.defaultMode}`} />}</div>
       </main>
     </div>
   );

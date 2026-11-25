@@ -100,13 +100,13 @@ export default function SpeedTiers() {
       </div>
       <div className="panel divide-y divide-line">
         {filtered.map((r, i) => (
-          <div key={i} className={`grid grid-cols-[48px_200px_1fr_60px_70px] items-center gap-3 px-3 py-1.5 text-sm ${r.mine ? 'bg-accent/10' : ''}`}>
+          <div key={i} className={`grid grid-cols-[32px_minmax(0,1fr)_44px_44px] items-center gap-2 sm:grid-cols-[48px_200px_1fr_60px_70px] sm:gap-3 px-3 py-1.5 text-sm ${r.mine ? 'bg-accent/10' : ''}`}>
             <Sprite species={r.species} size={32} kind="icon" />
             <div className="min-w-0">
               <div className={`truncate ${r.mine ? 'font-semibold text-accent' : ''}`}>{names.species(r.species)}</div>
               <div className="truncate text-[11px] text-faint">{r.label}</div>
             </div>
-            <div className="h-1.5 rounded-full bg-panel-2">
+            <div className="hidden h-1.5 rounded-full bg-panel-2 sm:block">
               <div className={`h-full rounded-full ${r.mine ? 'bg-accent' : r.scarf ? 'bg-warn' : 'bg-accent-2/70'}`} style={{ width: `${(r.speed / max) * 100}%` }} />
             </div>
             <div className="num text-right font-semibold">{r.speed}</div>

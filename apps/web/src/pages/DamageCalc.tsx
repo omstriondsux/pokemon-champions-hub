@@ -49,7 +49,7 @@ function SidePicker({ label, build, setBuild, mode }: { label: string; build: Bu
           )}
           {model && model.source === 'meta' && (
             <select
-              className="input w-60 py-1 text-xs"
+              className="input w-full max-w-60 min-w-0 py-1 text-xs"
               value={src.kind === 'meta' ? src.idx : ''}
               onChange={(e) => {
                 const c = model.candidates[Number(e.target.value)];
@@ -221,14 +221,14 @@ function ResultRow({ move, r, err }: { move: string; r?: DamageResult; err?: str
   const [o1, o2, o3] = r.koChance;
   const ko = o1 >= 0.999 ? 'OHKO garantizado' : o1 > 0 ? `${pct(o1, 1)} OHKO` : o2 >= 0.999 ? '2HKO garantizado' : o2 > 0 ? `${pct(o2, 1)} 2HKO` : o3 > 0 ? `${pct(o3, 1)} 3HKO` : 'no KO en 3';
   return (
-    <div className="grid grid-cols-[150px_1fr_170px] items-center gap-3 rounded-lg bg-panel-2 px-3 py-2">
+    <div className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1 sm:grid-cols-[150px_1fr_170px] rounded-lg bg-panel-2 px-3 py-2">
       <div className="font-medium">{names.move(r.move)}</div>
-      <div>
+      <div className="order-last col-span-2 min-w-0 sm:order-none sm:col-span-1">
         <div className="relative h-2.5 overflow-hidden rounded-full bg-bg">
           <div className="absolute h-full bg-accent/35" style={{ width: `${Math.min(100, r.maxPct)}%` }} />
           <div className="absolute h-full bg-accent" style={{ width: `${Math.min(100, r.minPct)}%` }} />
         </div>
-        <div className="mt-1 flex justify-between text-[11px] text-faint">
+        <div className="mt-1 flex flex-wrap justify-between gap-x-2 text-[11px] text-faint">
           <span className="num">
             {r.min}–{r.max} ({r.minPct.toFixed(1)}–{r.maxPct.toFixed(1)}%)
           </span>

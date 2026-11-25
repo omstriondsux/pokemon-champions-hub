@@ -109,7 +109,7 @@ export default function Settings() {
               <div className="mb-2 text-xs text-muted">
                 {r.pack.validFrom.value} → {r.pack.validTo.value} · paquete v{r.pack.packVersion} · base de datos {r.pack.dataBase.calc}
               </div>
-              <table className="w-full text-xs">
+              <table className="w-full text-xs [overflow-wrap:anywhere]">
                 <tbody>
                   {rules.map((x) => (
                     <tr key={x.path} className="border-t border-line">
