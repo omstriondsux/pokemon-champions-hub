@@ -1,0 +1,16 @@
+{
+  "name": "pokemon-champions-hub",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "test": "npm run test -w @pch/engine",
+    "typecheck": "npm run typecheck -w @pch/engine",
+    "ingest:smogon": "tsx scripts/ingest-smogon.ts",
+    "validate:rules": "tsx scripts/validate-regulations.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}

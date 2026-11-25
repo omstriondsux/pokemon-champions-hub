@@ -1,0 +1,20 @@
+{
+  "name": "@pch/engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pkmn/dex": "0.11.0",
+    "@pkmn/mods": "0.11.0",
+    "@smogon/calc": "0.12.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.8"
+  }
+}

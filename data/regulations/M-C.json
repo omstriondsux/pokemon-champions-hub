@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "id": "M-C",
+  "name": "Regulation Set M-C",
+  "packVersion": "1.0.0",
+  "validFrom": { "value": "2026-09-09", "confidence": "verified", "sources": ["serebii-mc", "pokedaily-reg"] },
+  "validTo": {
+    "value": "2026-12-02",
+    "confidence": "disputed",
+    "sources": ["serebii-mc", "pokedaily-reg"],
+    "note": "Serebii: 2 Dec 2026; Pokedaily: 1 Dec 2026 (Pokedaily page last verified before M-C)."
+  },
+  "sources": [
+    { "id": "serebii-mc", "url": "https://www.serebii.net/pokemonchampions/rankedbattle/regulationm-c.shtml", "kind": "community", "retrieved": "2026-11-24" },
+    { "id": "pokedaily-reg", "url": "https://pokedaily.net/champions/regulations/", "kind": "community", "retrieved": "2026-11-24" },
+    { "id": "victoryroad-reg", "url": "https://victoryroad.pro/champions-regulations/", "kind": "community", "retrieved": "2026-11-24" },
+    { "id": "smogon-calc", "url": "https://www.npmjs.com/package/@smogon/calc", "kind": "dataset", "retrieved": "2026-11-24" },
+    { "id": "playnews-mc", "url": "https://www.playnews.gg/en/guides/pokemon-champions-the-m-c-regulation-adds-6-mega-evolutions-including-the-first-3-mega-evolution-z", "kind": "community", "retrieved": "2026-11-24" }
+  ],
+  "formats": {
+    "singles": {
+      "gameType": "Singles",
+      "level": { "value": 50, "confidence": "verified", "sources": ["serebii-mc", "victoryroad-reg"] },
+      "teamSize": { "value": { "min": 3, "max": 6 }, "confidence": "reported", "sources": ["serebii-mc"] },
+      "bring": { "value": 3, "confidence": "assumed", "sources": [], "note": "Not stated on Serebii. Standard 6-pick-3 singles." },
+      "timers": { "value": { "teamPreviewSec": 90, "turnSec": 45, "playerTotalSec": 420 }, "confidence": "reported", "sources": ["serebii-mc"] },
+      "clauses": { "value": ["species", "item"], "confidence": "assumed", "sources": [], "note": "Pokedaily states Species + Item for doubles only; assumed identical for singles." }
+    },
+    "doubles": {
+      "gameType": "Doubles",
+      "level": { "value": 50, "confidence": "verified", "sources": ["serebii-mc", "pokedaily-reg"] },
+      "teamSize": { "value": { "min": 4, "max": 6 }, "confidence": "reported", "sources": ["serebii-mc"] },
+      "bring": { "value": 4, "confidence": "assumed", "sources": [], "note": "Not stated on Serebii. Standard VGC 6-pick-4." },
+      "timers": {
+        "value": { "teamPreviewSec": 90, "turnSec": 45, "playerTotalSec": 420 },
+        "confidence": "reported",
+        "sources": ["serebii-mc", "pokedaily-reg"],
+        "note": "Pokedaily also mentions a 20-minute total game clock, not stated on Serebii."
+      },
+      "clauses": { "value": ["species", "item"], "confidence": "reported", "sources": ["pokedaily-reg"] }
+    }
+  },
+  "dataBase": { "calc": "@smogon/calc@0.12.0 gen 0", "dex": "@pkmn/mods@0.11.0 champions" },
+  "roster": {
+    "value": {
+      "mode": "all-in-database",
+      "deny": [],
+      "expectedAdditions": ["Wigglytuff", "Persian", "Persian-Alola", "Farfetch’d", "Mr. Mime", "Swalot", "Absol-Mega-Z", "Salamence", "Salamence-Mega", "Garchomp-Mega-Z", "Lucario-Mega-Z", "Gogoat", "Golisopod", "Golisopod-Mega", "Rillaboom", "Cinderace", "Inteleon", "Thievul", "Toxtricity", "Toxtricity-Low-Key", "Grapploct", "Perrserker", "Sirfetch’d", "Pincurchin", "Indeedee", "Indeedee-F", "Pawmot", "Arboliva", "Squawkabilly", "Mabosstiff", "Baxcalibur", "Baxcalibur-Mega"]
+    },
+    "confidence": "reported",
+    "sources": ["serebii-mc", "pokedaily-reg", "smogon-calc"],
+    "note": "No source publishes the full M-C eligible list. Roster = Champions species in @smogon/calc 0.12.0 (released 2026-09-18, after M-C began). expectedAdditions = Serebii 'Newly Useable' list; a test checks they are all in the database."
+  },
+  "items": {
+    "value": {
+      "mode": "all-in-database",
+      "deny": [],
+      "expectedAdditions": ["Leek", "Rocky Helmet", "Air Balloon", "Red Card", "Binding Band", "Eject Button", "Normal Gem", "Terrain Extender", "Electric Seed", "Psychic Seed", "Misty Seed", "Grassy Seed"]
+    },
+    "confidence": "reported",
+    "sources": ["serebii-mc", "smogon-calc"]
+  },
+  "moves": { "value": { "deny": [] }, "confidence": "assumed", "sources": [], "note": "No banned moves stated." },
+  "abilities": { "value": { "deny": [] }, "confidence": "reported", "sources": ["pokedaily-reg"] },
+  "mechanics": {
+    "value": { "mega": true, "zMega": true, "tera": false, "dynamax": false, "zMoves": false, "megaPerBattle": 1 },
+    "confidence": "reported",
+    "sources": ["playnews-mc", "serebii-mc"],
+    "note": "Z-Mega mechanics are not fully documented. megaPerBattle=1 assumed from series convention."
+  },
+  "statPoints": {
+    "total": { "value": 66, "confidence": "verified", "sources": ["victoryroad-reg"] },
+    "perStatMax": { "value": 32, "confidence": "verified", "sources": ["victoryroad-reg"] },
+    "vpCostPerPoint": { "value": null, "confidence": "disputed", "sources": [], "note": "Sources say 2 VP or 5 VP per point. Set your observed value in Settings." },
+    "vpCostAlignment": { "value": 500, "confidence": "reported", "sources": [] }
+  },
+  "overrides": { "moves": {}, "species": {} }
+}
