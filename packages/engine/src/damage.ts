@@ -1,6 +1,6 @@
 import { calculate, Field, Move, Pokemon, type State } from '@smogon/calc';
 import { getFinalSpeed } from '@smogon/calc/dist/mechanics/util.js';
-import { calcGen, dex } from './data/dex.js';
+import { calcGen, database, dex } from './data/dex.js';
 import { megaFormeOf } from './legality.js';
 import type { Build, StatTable } from './build.js';
 import type { Regulation } from './rules/regulation.js';
@@ -24,8 +24,10 @@ export function toCalcPokemon(build: Build, reg: Regulation, opts: CombatantOpti
   const megaForme = megaFormeOf(build);
   const useMega = opts.mega ?? !!megaForme;
   const name = useMega && megaForme ? megaForme : build.species;
+  const calcName = database.calcSpeciesName(name);
+  if (!calcName) throw new Error(`The damage calc has no data for ${name}`);
   const speciesOverride = reg.pack.overrides.species[name];
-  const p = new Pokemon(calcGen, name, {
+  const p = new Pokemon(calcGen, calcName, {
     level: reg.format('doubles').level.value,
     ability: useMega && megaForme ? undefined : build.ability, // mega formes have their own ability
     item: build.item,
@@ -149,6 +151,8 @@ export interface DamageOptions {
   /** Override accuracy (e.g. No Guard, or to ignore misses). 0-1. */
   accuracy?: number;
   critStage?: number;
+  /** Treat crits as impossible (standard convention for "guaranteed" thresholds). */
+  ignoreCrit?: boolean;
 }
 
 export function calcDamage(attacker: Build, defender: Build, moveName: string, reg: Regulation, opts: DamageOptions = {}): DamageResult {
@@ -169,7 +173,7 @@ export function calcDamage(attacker: Build, defender: Build, moveName: string, r
     assumptions.push(`Accuracy ${dexMove.accuracy}% (no accuracy/evasion modifiers applied)`);
   }
   const willCrit = !!dexMove.willCrit;
-  const critChance = willCrit ? 1 : critChanceForStage((dexMove.critRatio ?? 1) - 1 + (opts.critStage ?? 0));
+  const critChance = willCrit ? 1 : opts.ignoreCrit ? 0 : critChanceForStage((dexMove.critRatio ?? 1) - 1 + (opts.critStage ?? 0));
   const hp = def.originalCurHP;
   const maxHP = def.maxHP();
   const expected = accuracy * ((1 - critChance) * distMean(normalDist) + critChance * distMean(critDist));

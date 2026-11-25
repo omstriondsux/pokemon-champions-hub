@@ -17,17 +17,52 @@ const calcSpeciesById = new Map([...calcGen.species].map((s) => [toID(s.name), s
 const calcItemsById = new Map([...calcGen.items].map((i) => [toID(i.name), i.name]));
 const calcMovesById = new Map([...calcGen.moves].map((m) => [toID(m.name), m.name]));
 
+/**
+ * Species legal in the Showdown Champions mod. Union with the calc roster, because each source has gaps
+ * (e.g. @smogon/calc 0.12.0 names Aegislash only as "Aegislash-Shield/-Blade/-Both").
+ */
+const dexLegalById = new Map(
+  dex.species
+    .all()
+    .filter((s) => s.exists && !s.isNonstandard && s.tier !== 'Illegal' && s.tier !== 'Unreleased')
+    .map((s) => [s.id as string, s.name]),
+);
+const CALC_ALIASES: Record<string, string> = {
+  aegislash: 'Aegislash-Both', // Blade stats when attacking, Shield when defending (Stance Change)
+};
+const rosterIds = new Set<string>([...calcSpeciesById.keys(), ...dexLegalById.keys()]);
+
 export const database = {
-  speciesIds: (): ID[] => [...calcSpeciesById.keys()] as ID[],
+  speciesIds: (): ID[] => [...rosterIds] as ID[],
   itemIds: (): ID[] => [...calcItemsById.keys()] as ID[],
-  hasSpecies: (name: string) => calcSpeciesById.has(toID(name)),
+  hasSpecies: (name: string) => rosterIds.has(toID(name)),
   hasItem: (name: string) => calcItemsById.has(toID(name)),
   hasMove: (name: string) => calcMovesById.has(toID(name)),
   /** Canonical calc name (handles "Sirfetch'd" vs "Sirfetch’d", casing, etc.). */
-  speciesName: (name: string) => calcSpeciesById.get(toID(name)),
+  speciesName: (name: string) => calcSpeciesById.get(toID(name)) ?? dexLegalById.get(toID(name)),
   itemName: (name: string) => calcItemsById.get(toID(name)),
   moveName: (name: string) => calcMovesById.get(toID(name)),
+  /**
+   * Name the damage calc understands for this species: itself, a known alias, or (cosmetic formes
+   * such as Vivillon-Polar) its base species. undefined = the calc cannot model it.
+   */
+  calcSpeciesName: (name: string): string | undefined => {
+    const id = toID(name);
+    if (calcSpeciesById.has(id)) return calcSpeciesById.get(id);
+    if (CALC_ALIASES[id]) return CALC_ALIASES[id];
+    const s = dex.species.get(name);
+    if (s.exists && s.baseSpecies !== s.name && calcSpeciesById.has(toID(s.baseSpecies))) return calcSpeciesById.get(toID(s.baseSpecies));
+    return undefined;
+  },
 };
+
+/** The species a forme is registered as: Floette-Mega → Floette-Eternal, Charizard-Mega-Y → Charizard. */
+export function registeredForme(name: string): string {
+  const s = dex.species.get(name);
+  if (!s.exists) return name;
+  if (s.isMega || s.battleOnly) return (s.changesFrom as string | undefined) ?? (typeof s.battleOnly === 'string' ? s.battleOnly : s.baseSpecies);
+  return s.name;
+}
 
 export function getSpecies(name: string): Species | undefined {
   const s = dex.species.get(name);

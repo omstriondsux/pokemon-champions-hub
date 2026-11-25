@@ -40,7 +40,7 @@ const incin = makeBuild({
   ability: 'Blaze',
   item: 'Sitrus Berry',
   alignment: 'Careful',
-  moves: ['Fake Out', 'Flare Blitz', 'Parting Shot', 'Knock Off'],
+  moves: ['Fake Out', 'Flare Blitz', 'Parting Shot', 'Darkest Lariat'],
   sp: { hp: 32, spd: 20, def: 14 },
 });
 
@@ -197,7 +197,7 @@ describe('speed & thresholds', () => {
     // one less total point can never give a guaranteed survival
     for (let hp = 0; hp <= r.totalUsed - 1; hp++) {
       const trial = { ...def, sp: { ...def.sp, hp, def: r.totalUsed - 1 - hp } };
-      expect(calcDamage(chomp, trial, 'Dragon Claw', MC).koChance[0]).toBeGreaterThan(0);
+      expect(calcDamage(chomp, trial, 'Dragon Claw', MC, { accuracy: 1, ignoreCrit: true }).koChance[0]).toBeGreaterThan(0);
     }
   });
 
@@ -207,7 +207,7 @@ describe('speed & thresholds', () => {
     expect(r).not.toBeNull();
     expect(r!.koChance).toBe(1);
     if (r!.sp > 0) {
-      const less = calcDamage({ ...chomp, sp: { ...chomp.sp, atk: r!.sp - 1 } }, frail, 'Dragon Claw', MC);
+      const less = calcDamage({ ...chomp, sp: { ...chomp.sp, atk: r!.sp - 1 } }, frail, 'Dragon Claw', MC, { accuracy: 1, ignoreCrit: true });
       expect(less.koChance[0]).toBeLessThan(1);
     }
   });

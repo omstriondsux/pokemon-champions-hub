@@ -9,6 +9,9 @@ import type { StatID } from '@smogon/calc';
  * The space per question is ≤ 33×33 combinations, so brute force is exact and fast.
  */
 
+/** Thresholds follow the usual convention: over all 16 rolls, the move hits, no crit (override via opts). */
+const thresholdOpts = (opts: DamageOptions): DamageOptions => ({ accuracy: 1, ignoreCrit: true, ...opts });
+
 const limits = (reg: Regulation) => ({ total: reg.pack.statPoints.total.value, cap: reg.pack.statPoints.perStatMax.value });
 
 /** SP left for `stats` if every other stat keeps its current investment. */
@@ -73,7 +76,7 @@ export function minBulkToSurvive(
     for (let hp = Math.max(0, total - cap); hp <= Math.min(cap, total); hp++) {
       const d = total - hp;
       const trial: Build = { ...defender, sp: { ...defender.sp, hp, [defStat]: d } };
-      const r = calcDamage(attacker, trial, move, reg, opts);
+      const r = calcDamage(attacker, trial, move, reg, thresholdOpts(opts));
       const survive = 1 - r.koChance[0];
       if (survive >= threshold - 1e-12 && (!best || survive > best.survivalChance)) {
         best = { hp, def: d, defStat, totalUsed: total, survivalChance: survive };
@@ -105,7 +108,7 @@ export function minOffenseToKO(
   const max = Math.min(limits(reg).cap, budgetFor(attacker, reg, [stat]));
   for (let sp = 0; sp <= max; sp++) {
     const trial: Build = { ...attacker, sp: { ...attacker.sp, [stat]: sp } };
-    const r = calcDamage(trial, defender, move, reg, opts);
+    const r = calcDamage(trial, defender, move, reg, thresholdOpts(opts));
     const p = r.koChance[hits - 1]!;
     if (p >= threshold - 1e-12) return { sp, stat, koChance: p };
   }

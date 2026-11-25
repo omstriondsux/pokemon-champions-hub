@@ -11,6 +11,7 @@
   "dependencies": {
     "@pkmn/dex": "0.11.0",
     "@pkmn/mods": "0.11.0",
+    "@pkmn/sets": "^7.0.0",
     "@smogon/calc": "0.12.0",
     "zod": "^3.23.8"
   },

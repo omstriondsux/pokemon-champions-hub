@@ -5,26 +5,36 @@ Uso local en el PC: se juega en el móvil y se consulta el Advisor en el PC.
 
 > Proyecto no oficial. No afiliado a Nintendo, Game Freak ni The Pokémon Company.
 
-## Estado: Fase F0 — cimientos
+## Uso
 
-| Pieza | Estado |
+```powershell
+npm install
+npm run dev        # servidor local (127.0.0.1:8787) + interfaz (http://127.0.0.1:5173)
+```
+
+Abre http://127.0.0.1:5173. Todo es local: el inventario vive en `data/hub.db` (SQLite), con una copia diaria automática en `data/backups/`.
+
+## Estado: F1 (MVP) completada
+
+| Módulo | Qué hace |
 |---|---|
-| Paquetes de regulación en JSON (fuera del código) con procedencia y confianza por regla | ✅ M-C |
-| Motor de estadísticas con Stat Points (66 total / 32 por stat) | ✅ verificado contra @smogon/calc en >10.000 casos |
-| Validación de builds, equipos y selección de combate | ✅ |
-| Calculadora de daño (Champions, gen 0 de @smogon/calc) + probabilidades exactas de OHKO/2HKO/3HKO/4HKO con precisión y críticos | ✅ |
-| Velocidad final (Tailwind, Scarf, boosts…) y umbrales: SP para superar en velocidad, sobrevivir, garantizar KO | ✅ |
-| Ingesta mensual de estadísticas de Smogon (simulador, etiquetadas como tal) | ✅ |
-| Interfaz web (F1) | ⏳ |
+| **Battle Advisor** | Escribes los 6 rivales (2-3 letras + Enter) y calcula la matriz 1v1 exacta contra las builds probables de cada rival (incluidas megas ocultas). Busca entre todas las selecciones posibles (15×15 en dobles, 20×20 en individuales) y propone 3 alternativas: mejor media, mejor peor caso (CVaR 25%) y mejor potencial, con leads, riesgos, condición de victoria y evidencia. ~0,2 s |
+| **Mis Pokémon** | Inventario con varias builds por especie, estados de disponibilidad, favoritos, coste en VP y validación de legalidad en vivo. Importa y exporta en formato Showdown (convierte los EVs clásicos a SP) |
+| **Equipos** | Equipos registrados por formato, con Species/Item Clause y aviso de megas múltiples. Equipo activo por modo |
+| **Calculadora** | Daño con las mecánicas de Champions, probabilidades exactas de nHKO, clima, campos, pantallas, boosts. Umbrales de SP: velocidad, bulk mínimo y ofensiva mínima |
+| **Speed Tiers** | Velocidades reales del meta (top spreads + Scarf), con tu equipo intercalado, Trick Room y Tailwind |
+| **Historial** | Registro de combates, con estadísticas por Pokémon, rival, leads y si seguiste al Advisor. Intervalos de Wilson: no saca conclusiones con muestras pequeñas |
+| **Dashboard** | Regulación y días restantes, frescura de los datos, top del meta, amenazas del top 20 sin respuesta en tu equipo activo |
+| **Ajustes** | Español/inglés (nombres de PokéAPI), tema oscuro/claro, corte de rating, coste en VP, backup JSON, reglas sin verificar |
 
 ## Comandos
 
 ```powershell
-npm install
-npm test                 # tests del motor
-npm run typecheck
-npm run validate:rules   # valida los paquetes de regulación y lista reglas no verificadas
+npm test                 # motor (37 tests) + API (4 tests)
+npm run validate:rules   # valida paquetes de regulación y lista reglas no verificadas
 npm run ingest:smogon    # descarga el último mes de estadísticas (singles + dobles)
+npm run build:i18n       # regenera los nombres en español desde PokéAPI
+npm start                # build de producción servida por el servidor local en :8787
 ```
 
 ## Cómo añadir una regulación nueva (p. ej. M-D)

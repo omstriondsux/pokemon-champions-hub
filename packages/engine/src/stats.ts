@@ -45,7 +45,7 @@ export function validateSpread(sp: StatTable, limits: { total: number; perStatMa
   for (const s of STAT_IDS) {
     const v = sp[s];
     sum += v;
-    if (!Number.isInteger(v)) issues.push({ code: 'sp-not-integer', message: `${s}: ${v} is not an integer` });
+    if (!Number.isInteger(v)) issues.push({ code: 'sp-not-integer', message: `${s}: ${v} no es un entero` });
     if (v < 0) issues.push({ code: 'sp-negative', message: `${s}: ${v} < 0` });
     if (v > limits.perStatMax) issues.push({ code: 'sp-per-stat', message: `${s}: ${v} > ${limits.perStatMax}` });
   }

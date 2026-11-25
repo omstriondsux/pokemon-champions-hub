@@ -1,0 +1,124 @@
+@import 'tailwindcss';
+
+@custom-variant light (&:where([data-theme='light'], [data-theme='light'] *));
+
+/* Design tokens. Dark is the primary theme; light is optional (Settings). */
+:root {
+  --bg: #090c12;
+  --panel: #10151f;
+  --panel-2: #161c29;
+  --line: #222a3a;
+  --line-strong: #2f3a50;
+  --text: #e7eaf0;
+  --muted: #8b95a9;
+  --faint: #5b6579;
+  --accent: #8b6cff;
+  --accent-2: #3fd0ff;
+  --good: #36d399;
+  --warn: #f5b942;
+  --bad: #ff5470;
+  --glow: rgba(139, 108, 255, 0.18);
+}
+[data-theme='light'] {
+  --bg: #f3f5f9;
+  --panel: #ffffff;
+  --panel-2: #f7f8fb;
+  --line: #e1e5ed;
+  --line-strong: #cbd2df;
+  --text: #121826;
+  --muted: #566074;
+  --faint: #8a93a6;
+  --accent: #6a4cf0;
+  --accent-2: #0e8fc2;
+  --good: #11a36b;
+  --warn: #c98a0c;
+  --bad: #e02f4f;
+  --glow: rgba(106, 76, 240, 0.12);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-good: var(--good);
+  --color-warn: var(--warn);
+  --color-bad: var(--bad);
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-display: 'Rajdhani', 'Inter', sans-serif;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+::selection {
+  background: var(--glow);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+@layer components {
+  .panel {
+    @apply rounded-xl border border-line bg-panel;
+  }
+  .panel-title {
+    @apply font-display text-[13px] font-bold tracking-[0.14em] text-muted uppercase;
+  }
+  .btn {
+    @apply inline-flex items-center gap-1.5 rounded-lg border border-line-strong bg-panel-2 px-3 py-1.5 text-sm font-medium text-text transition-colors hover:border-accent/60 hover:bg-accent/10 disabled:cursor-not-allowed disabled:opacity-40;
+  }
+  .btn-primary {
+    @apply border-accent bg-accent text-white hover:bg-accent/85;
+  }
+  .btn-ghost {
+    @apply border-transparent bg-transparent hover:bg-panel-2;
+  }
+  .input {
+    @apply w-full rounded-lg border border-line-strong bg-panel-2 px-3 py-1.5 text-sm text-text outline-none placeholder:text-faint focus:border-accent focus:ring-2 focus:ring-accent/25;
+  }
+  .label {
+    @apply mb-1 block text-xs font-medium text-muted;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-md border border-line px-1.5 py-0.5 text-[11px] font-medium text-muted;
+  }
+  .num {
+    @apply font-mono tabular-nums;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.fade-up {
+  animation: fade-up 0.18s ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fade-up {
+    animation: none;
+  }
+}
