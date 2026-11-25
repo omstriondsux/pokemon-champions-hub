@@ -71,7 +71,7 @@ export default function Settings() {
         </Field>
       </div>
 
-      <CoachKeySettings />
+      {!STATIC && <CoachKeySettings />}
 
       <div className="panel mb-4 p-5">
         <div className="panel-title mb-3">Copias de seguridad</div>
@@ -97,6 +97,7 @@ export default function Settings() {
         {msg && <p className="mt-2 text-sm text-muted">{msg}</p>}
       </div>
 
+      {!STATIC && (
       <div className="panel p-5">
         <div className="panel-title mb-3">Paquetes de regulación</div>
         {regulations.map((r) => {
@@ -127,6 +128,7 @@ export default function Settings() {
         })}
         <p className="text-xs text-faint">Para una regulación nueva, añade su JSON en data/regulations (ver README). La app no inventa reglas: lo no publicado queda como «supuesto».</p>
       </div>
+      )}
     </div>
   );
 }

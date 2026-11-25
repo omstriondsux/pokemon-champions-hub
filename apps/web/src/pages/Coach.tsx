@@ -7,6 +7,7 @@ import { runAnalysis } from '../lib/worker';
 import type { Mode } from '../lib/types';
 import { wilson } from './BattleHistory';
 import { CoachChat } from '../components/CoachChat';
+import { STATIC } from '../lib/api';
 import { PageHeader, Sprite } from '../components/ui';
 
 interface ThreatRow {
@@ -165,10 +166,10 @@ export default function Coach() {
 
   return (
     <div className="fade-up max-w-4xl">
-      <PageHeader title="Coach" subtitle="Un análisis automático de tu equipo y, debajo, un chat con IA que conoce tus datos y discute contigo tus decisiones." />
+      <PageHeader title="Coach" subtitle={STATIC ? 'Análisis automático de tu equipo contra el meta: debilidades, amenazas y qué cambiar.' : 'Un análisis automático de tu equipo y, debajo, un chat con IA que conoce tus datos y discute contigo tus decisiones.'} />
       {!team ? (
         <div className="mb-4 rounded-lg border border-warn/40 bg-warn/10 p-3 text-sm">
-          No tienes equipo activo en {mode === 'doubles' ? 'dobles' : 'individuales'}: elige uno arriba para que el Coach analice tu equipo. Puedes chatear igualmente.
+          No tienes equipo activo en {mode === 'doubles' ? 'dobles' : 'individuales'}: elige uno arriba para que el Coach analice tu equipo.{!STATIC && ' Puedes chatear igualmente.'}
         </div>
       ) : (
         <>
@@ -198,7 +199,7 @@ export default function Coach() {
           </div>
         </>
       )}
-      <CoachChat context={context} ready={!team || (!!threats && !!squad)} />
+      {!STATIC && <CoachChat context={context} ready={!team || (!!threats && !!squad)} />}
     </div>
   );
 }

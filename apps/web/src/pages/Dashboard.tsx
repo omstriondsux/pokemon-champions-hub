@@ -9,6 +9,7 @@ import { useTeamIssues } from './Teams';
 import { Badge, PageHeader, scoreColor, signed, Sprite } from '../components/ui';
 import { ArrowRight, CheckCircle2, Circle, Swords as SwordsIcon, Boxes, Sparkles, MessageSquare } from 'lucide-react';
 import { MasterBall } from '../components/MasterBall';
+import { STATIC } from '../lib/api';
 
 interface ThreatRow {
   species: string;
@@ -65,7 +66,7 @@ export default function Dashboard() {
         subtitle="Resumen del meta, alertas y estado de tu equipo activo."
       />
 
-      <GettingStarted mode={mode} />
+      {!STATIC && <GettingStarted mode={mode} />}
       <QuickActions />
 
       <div className="mb-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -76,10 +77,10 @@ export default function Dashboard() {
           </div>
           {daysLeft <= 14 && (
             <p className="mt-2 text-xs text-warn">
-              ⚠ Termina en {daysLeft} días. La próxima regulación traerá cambios de balance: cuando se publique, añade su paquete en <code>data/regulations</code>.
+              ⚠ Termina en {daysLeft} días. La próxima regulación traerá cambios de balance{STATIC ? '.' : <>: cuando se publique, añade su paquete en <code>data/regulations</code>.</>}
             </p>
           )}
-          <p className="mt-1 text-xs text-faint">{unverified} reglas sin verificar (ver Ajustes).</p>
+          {!STATIC && <p className="mt-1 text-xs text-faint">{unverified} reglas sin verificar (ver Ajustes).</p>}
         </Card>
         <Card icon={Database} title="Datos del meta">
           {snap ? (
