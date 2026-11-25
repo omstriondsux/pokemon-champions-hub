@@ -3,6 +3,7 @@ import { Download, Upload } from 'lucide-react';
 import { useApp } from '../lib/app';
 import { api } from '../lib/api';
 import { Badge, PageHeader, Segmented } from '../components/ui';
+import { CoachKeySettings } from '../components/CoachKeySettings';
 
 function unverifiedRules(obj: unknown, path: string[] = [], out: { path: string; confidence: string; note?: string }[] = []) {
   if (!obj || typeof obj !== 'object') return out;
@@ -69,6 +70,8 @@ export default function Settings() {
           <input className="input num w-40" type="number" min={0} value={settings.vpCostPerPoint ?? ''} onChange={(e) => saveSettings({ vpCostPerPoint: e.target.value === '' ? null : Number(e.target.value) })} placeholder="sin definir" />
         </Field>
       </div>
+
+      <CoachKeySettings />
 
       <div className="panel mb-4 p-5">
         <div className="panel-title mb-3">Copias de seguridad</div>

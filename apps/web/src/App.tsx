@@ -57,7 +57,7 @@ export const GROUPS: Group[] = [
   {
     title: 'Mejorar',
     routes: [
-      { id: 'coach', key: 'nav.coach', icon: MessageSquare, page: Coach, hint: 'Debilidades de tu equipo' },
+      { id: 'coach', key: 'nav.coach', icon: MessageSquare, page: Coach, hint: 'Análisis y chat con IA' },
       { id: 'squad', key: 'nav.squad', icon: Sparkles, page: SquadBuilder, hint: 'Arma equipos automáticamente' },
       { id: 'optimizer', key: 'nav.optimizer', icon: Wrench, page: BuildOptimizer, hint: 'Mejora una build' },
       { id: 'recruit', key: 'nav.recruit', icon: BookOpen, page: Recruitment, hint: 'Qué Pokémon reclutar' },

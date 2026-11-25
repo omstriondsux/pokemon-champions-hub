@@ -27,6 +27,10 @@ Abre http://127.0.0.1:5173. Todo es local: el inventario vive en `data/hub.db` (
 | **Dashboard** | Regulación y días restantes, frescura de los datos, top del meta, amenazas del top 20 sin respuesta en tu equipo activo |
 | **Ajustes** | Español/inglés (nombres de PokéAPI), tema oscuro/claro, corte de rating, coste en VP, backup JSON, reglas sin verificar |
 
+## Coach con IA (opcional)
+
+Chat con Claude Sonnet 5.5 que conoce tu equipo, su análisis contra el meta y tu historial, y discute tus decisiones. Necesita una clave de API de Anthropic (console.anthropic.com → API Keys, saldo de prepago): pégala en **Ajustes → Coach con IA**. Se guarda solo en `data/secrets.json` (ignorado por git) y la usa únicamente el servidor local; el navegador nunca la ve. Precio: $2 / $10 por millón de tokens (entrada/salida), unos 2–3 céntimos de dólar por pregunta; cada respuesta muestra su coste. Los cálculos los sigue haciendo el motor; la IA solo interpreta y argumenta.
+
 ## Comandos
 
 ```powershell

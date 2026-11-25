@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, normalize, sep } from 'node:path';
 import { COLLECTIONS, type Collection, type Store } from './db.js';
+import { registerCoach } from './coach.js';
 
 const StatTable = z.object({ hp: z.number().int(), atk: z.number().int(), def: z.number().int(), spa: z.number().int(), spd: z.number().int(), spe: z.number().int() });
 const Build = z.object({
@@ -73,6 +74,7 @@ export function createApp({ store, dataDir, updater }: AppOptions) {
   });
 
   app.get('/api/health', (c) => c.json({ ok: true }));
+  registerCoach(app, dataDir);
 
   for (const col of COLLECTIONS) {
     app.get(`/api/${col}`, (c) => c.json(store.list(col)));

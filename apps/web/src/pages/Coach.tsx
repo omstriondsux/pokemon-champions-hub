@@ -6,7 +6,8 @@ import { resolveTeam } from '../lib/pokemon';
 import { runAnalysis } from '../lib/worker';
 import type { Mode } from '../lib/types';
 import { wilson } from './BattleHistory';
-import { Empty, PageHeader, Segmented, Sprite } from '../components/ui';
+import { CoachChat } from '../components/CoachChat';
+import { PageHeader, Sprite } from '../components/ui';
 
 interface ThreatRow {
   species: string;
@@ -128,38 +129,76 @@ export default function Coach() {
     return out;
   }, [threats, squad, builds, names, battles, mode, snap]);
 
-  if (!team) return <Empty>Marca un equipo activo en «Equipos» para que el Coach analice tu equipo y tu historial.</Empty>;
+  // Everything the AI may use, as plain text. Numbers come from the engine, never from the model.
+  const context = useMemo(() => {
+    const L: string[] = [];
+    L.push(`Regulación: ${regulation.id} (${regulation.pack.validFrom.value} → ${regulation.pack.validTo.value}). Modo: ${mode === 'doubles' ? 'dobles (eliges 4 de 6)' : 'individuales (eliges 3 de 6)'}.`);
+    if (snap) L.push(`Meta: Smogon ${snap.meta.month}, ${snap.meta.showdownFormat}, rating ≥ ${snap.meta.ratingCutoff}, ${snap.meta.battles} combates (simulador, no oficial).`);
+    if (snap) {
+      const top = Object.entries(snap.pokemon).sort((a, b) => b[1].usage - a[1].usage).slice(0, 15);
+      L.push(`Top 15 por uso: ${top.map(([n, m]) => `${n} ${(m.usage * 100).toFixed(1)}%`).join(', ')}.`);
+    }
+    if (team) {
+      L.push(`\nEQUIPO ACTIVO «${team.name}»:`);
+      builds.forEach((b) => L.push(`- ${b.species} @ ${b.item ?? 'sin objeto'} | ${b.ability} | ${b.alignment} | SP ${Object.entries(b.sp).map(([k, v]) => `${k}${v}`).join(' ')} | ${b.moves.join(', ')}`));
+    } else L.push('\nEl usuario no tiene equipo activo en este modo.');
+    if (threats) {
+      L.push('\nÍNDICE 1v1 DE CADA MIEMBRO CONTRA EL TOP 24 (−1 pierde … +1 gana; heurístico):');
+      for (const r of threats) L.push(`- ${r.species} (${(r.usage * 100).toFixed(1)}%): ${r.scores.map((s, i) => `${builds[i]?.species}=${s.toFixed(2)}`).join(', ')} | mejor respuesta ${r.best.toFixed(2)}`);
+    }
+    const t = squad?.teams[0];
+    if (t) {
+      L.push(`\nPUNTUACIÓN DEL EQUIPO (heurística): ${t.score.toFixed(3)}. Términos: ${Object.entries(t.terms).map(([k, v]) => `${k}=${v.toFixed(2)}`).join(', ')}.`);
+      L.push(`Contribución de cada miembro (lo que se pierde al quitarlo): ${t.contributions.map((c) => `${builds[c.member]?.species}=${c.delta.toFixed(3)}`).join(', ')}.`);
+      if (t.weaknesses.length) L.push(`Debilidades compartidas por 3+: ${t.weaknesses.join(', ')}.`);
+    }
+    const mine = battles.filter((b) => b.format === mode);
+    if (mine.length) {
+      const w = mine.filter((b) => b.result === 'win').length;
+      L.push(`\nHISTORIAL (${mode}): ${mine.length} combates, ${w} victorias.`);
+      for (const b of mine.slice(0, 15))
+        L.push(`- ${b.date.slice(0, 10)} ${b.result} vs ${b.opponentTeam.join('/')} | saqué ${b.mySelection.map((i) => b.myTeam[i]?.species).join('/')} | motivo: ${b.reason || '—'} | errores: ${b.mistakes.join('; ') || '—'}`);
+    } else L.push('\nHISTORIAL: sin combates registrados.');
+    L.push(`\nANÁLISIS AUTOMÁTICO YA MOSTRADO AL USUARIO:\n${insights.map((i) => `- ${i.q} → ${i.a}`).join('\n')}`);
+    return L.join('\n');
+  }, [regulation, mode, snap, team, builds, threats, squad, battles, insights]);
 
   return (
     <div className="fade-up max-w-4xl">
-      <PageHeader
-        title="Coach analítico"
-        subtitle="Respuestas basadas en cálculos y en tu historial, sin IA generativa (decisión tuya). Cada respuesta indica si es un hecho, un cálculo, una estadística, una inferencia o una hipótesis."
-      />
-      <div className="mb-4 flex items-center gap-2">
-        {builds.map((b, i) => (
-          <Sprite key={i} species={b.species} size={40} />
-        ))}
-        <span className="ml-2 text-sm text-muted">{team.name}</span>
-      </div>
-      {busy && (
-        <div className="flex items-center gap-2 text-sm text-muted">
-          <Loader2 size={15} className="animate-spin" /> Analizando tu equipo contra el meta…
+      <PageHeader title="Coach" subtitle="Un análisis automático de tu equipo y, debajo, un chat con IA que conoce tus datos y discute contigo tus decisiones." />
+      {!team ? (
+        <div className="mb-4 rounded-lg border border-warn/40 bg-warn/10 p-3 text-sm">
+          No tienes equipo activo en {mode === 'doubles' ? 'dobles' : 'individuales'}: elige uno arriba para que el Coach analice tu equipo. Puedes chatear igualmente.
         </div>
-      )}
-      <div className="space-y-3">
-        {insights.map((i) => (
-          <div key={i.q} className="panel p-4">
-            <div className="mb-1 flex items-center gap-2">
-              <Brain size={15} className="text-accent" />
-              <span className="font-semibold">{i.q}</span>
-              <span className={`chip ml-auto ${KIND_STYLE[i.kind]}`}>{i.kind}</span>
-            </div>
-            <p className="text-sm">{i.a}</p>
-            <p className="mt-1 text-[11px] text-faint">Evidencia: {i.evidence}</p>
+      ) : (
+        <>
+          <div className="mb-4 flex items-center gap-2">
+            {builds.map((b, i) => (
+              <Sprite key={i} species={b.species} size={40} />
+            ))}
+            <span className="ml-2 text-sm text-muted">{team.name}</span>
           </div>
-        ))}
-      </div>
+          {busy && (
+            <div className="mb-3 flex items-center gap-2 text-sm text-muted">
+              <Loader2 size={15} className="animate-spin" /> Analizando tu equipo contra el meta…
+            </div>
+          )}
+          <div className="mb-5 grid gap-3 md:grid-cols-2">
+            {insights.map((i) => (
+              <div key={i.q} className="panel p-4">
+                <div className="mb-1 flex items-center gap-2">
+                  <Brain size={15} className="text-accent" />
+                  <span className="text-sm font-semibold">{i.q}</span>
+                  <span className={`chip ml-auto ${KIND_STYLE[i.kind]}`}>{i.kind}</span>
+                </div>
+                <p className="text-sm">{i.a}</p>
+                <p className="mt-1 text-[11px] text-faint">Evidencia: {i.evidence}</p>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+      <CoachChat context={context} ready={!team || (!!threats && !!squad)} />
     </div>
   );
 }
