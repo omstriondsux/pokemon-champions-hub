@@ -17,5 +17,9 @@
   },
   "devDependencies": {
     "vitest": "^2.1.8"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./coach": "./src/coach.ts"
   }
 }

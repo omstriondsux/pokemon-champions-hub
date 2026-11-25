@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { activeRegulation, Regulation, type MetaSnapshot } from '@pch/engine';
-import { api } from './api';
+import { api, STATIC } from './api';
 import { makeNames, makeT, type NameTable, type Names } from './i18n';
 import { buildCatalog, mergeCatalog } from './catalog';
 import { DEFAULT_SETTINGS, type BattleRecord, type Mode, type OwnedPokemon, type Settings, type Team } from './types';
@@ -81,7 +81,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         await reload();
         setReady(true);
       } catch (e) {
-        setError(`No se pudo conectar con el servidor local: ${String(e)}`);
+        setError(STATIC ? `No se pudieron cargar los datos: ${String(e)}` : `No se pudo conectar con el servidor local: ${String(e)}`);
       }
     })();
   }, [reload]);

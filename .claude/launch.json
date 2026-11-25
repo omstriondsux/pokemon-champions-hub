@@ -7,6 +7,13 @@
       "runtimeArgs": ["run", "dev"],
       "port": 5173,
       "url": "http://127.0.0.1:5173"
+    },
+    {
+      "name": "static-preview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "preview", "--outDir", "../../../pch-static-dist", "--base", "/pokemon-champions-hub/", "--port", "4173", "--strictPort"],
+      "cwd": "apps/web",
+      "port": 4173
     }
   ]
 }

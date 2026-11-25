@@ -1,0 +1,65 @@
+# Public web on GitHub Pages: builds the static version (no server; each visitor's data stays in their browser)
+# on every push, and once a week downloads the new Smogon usage stats, commits them and republishes.
+name: Web pública
+
+on:
+  push:
+    branches: [master]
+  schedule:
+    - cron: '17 6 * * 1' # lunes 06:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+
+      - name: Actualizar datos de Smogon
+        if: github.event_name != 'push'
+        run: npm run ingest:smogon -- --months 2 || echo "La descarga falló; se publican los datos anteriores."
+      - name: Guardar datos nuevos en el repo
+        if: github.event_name != 'push'
+        run: |
+          if [ -n "$(git status --porcelain data/snapshots)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add data/snapshots
+            git commit -m "Datos de Smogon actualizados"
+            git push
+          fi
+
+      - run: npm run test -w @pch/engine
+      - name: Compilar la web estática
+        run: npm run build -w @pch/web
+        env:
+          VITE_STATIC: '1'
+          VITE_BASE: /${{ github.event.repository.name }}/
+      - run: cp apps/web/dist/index.html apps/web/dist/404.html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

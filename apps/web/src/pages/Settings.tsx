@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { Download, Upload } from 'lucide-react';
 import { useApp } from '../lib/app';
-import { api } from '../lib/api';
+import { api, STATIC } from '../lib/api';
 import { Badge, PageHeader, Segmented } from '../components/ui';
 import { CoachKeySettings } from '../components/CoachKeySettings';
 
@@ -76,7 +76,11 @@ export default function Settings() {
       <div className="panel mb-4 p-5">
         <div className="panel-title mb-3">Copias de seguridad</div>
         <p className="mb-3 text-sm text-muted">
-          El servidor guarda una copia diaria automática de la base de datos en <code className="num">data/backups</code> (las últimas 14). Aquí puedes exportar e importar todo (inventario, equipos, historial y ajustes) en JSON.
+          {STATIC ? (
+            <>Tus equipos, historial y ajustes se guardan solo en este navegador: si borras los datos del navegador o cambias de dispositivo, se pierden. Exporta una copia de vez en cuando y impórtala donde quieras seguir.</>
+          ) : (
+            <>El servidor guarda una copia diaria automática de la base de datos en <code className="num">data/backups</code> (las últimas 14). Aquí puedes exportar e importar todo (inventario, equipos, historial y ajustes) en JSON.</>
+          )}
         </p>
         <div className="flex flex-wrap gap-2">
           <button className="btn" onClick={doExport}>

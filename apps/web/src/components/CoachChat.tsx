@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { Bot, KeyRound, Loader2, Send, Trash2, User } from 'lucide-react';
-import { useApp } from '../lib/app';
+import { STATIC } from '../lib/api';
+import { coachStatus, streamCoach, type CoachStatus, type CoachUsage } from '../lib/coachClient';
 
 interface Msg {
   role: 'user' | 'assistant';
   content: string;
-  usage?: { input: number; cached: number; output: number; model: string };
+  usage?: CoachUsage;
   error?: boolean;
 }
 
@@ -52,7 +53,7 @@ function Rich({ text }: { text: string }) {
 }
 
 export function CoachChat({ context, ready }: { context: string; ready: boolean }) {
-  const [status, setStatus] = useState<{ configured: boolean; source: string; model: string }>();
+  const [status, setStatus] = useState<CoachStatus>();
   const [msgs, setMsgs] = useState<Msg[]>(() => {
     try {
       return JSON.parse(localStorage.getItem(STORE_KEY) ?? '[]');
@@ -65,7 +66,7 @@ export function CoachChat({ context, ready }: { context: string; ready: boolean 
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch('/api/coach/status').then((r) => r.json()).then(setStatus).catch(() => setStatus({ configured: false, source: 'none', model: '' }));
+    coachStatus().then(setStatus);
   }, []);
   useEffect(() => {
     try {
@@ -84,31 +85,14 @@ export function CoachChat({ context, ready }: { context: string; ready: boolean 
     setInput('');
     setBusy(true);
     try {
-      const r = await fetch('/api/coach/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ context, messages: history.slice(-20).map(({ role, content }) => ({ role, content })) }),
-      });
-      if (!r.ok || !r.body) throw new Error((await r.json().catch(() => ({}))).error ?? r.statusText);
-      const reader = r.body.getReader();
-      const dec = new TextDecoder();
-      let acc = '';
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        acc += dec.decode(value, { stream: true });
-        const [text] = acc.split(/[\u0000\u0001]/);
-        setMsgs((m) => [...m.slice(0, -1), { role: 'assistant', content: text! }]);
-      }
-      const usageMatch = acc.split('\u0000')[1];
-      const errMatch = acc.split('\u0001')[1];
-      const text = acc.split(/[\u0000\u0001]/)[0]!.trim();
-      setMsgs((m) => [
-        ...m.slice(0, -1),
-        errMatch ? { role: 'assistant', content: errMatch.trim(), error: true } : { role: 'assistant', content: text, usage: usageMatch ? JSON.parse(usageMatch) : undefined },
-      ]);
+      const { text, usage } = await streamCoach(
+        context,
+        history.slice(-20).map(({ role, content }) => ({ role, content })),
+        (partial) => setMsgs((m) => [...m.slice(0, -1), { role: 'assistant', content: partial }]),
+      );
+      setMsgs((m) => [...m.slice(0, -1), { role: 'assistant', content: text, usage }]);
     } catch (e) {
-      setMsgs((m) => [...m.slice(0, -1), { role: 'assistant', content: `No se pudo contactar con el Coach: ${String(e)}`, error: true }]);
+      setMsgs((m) => [...m.slice(0, -1), { role: 'assistant', content: e instanceof Error ? e.message : String(e), error: true }]);
     } finally {
       setBusy(false);
     }
@@ -127,7 +111,7 @@ export function CoachChat({ context, ready }: { context: string; ready: boolean 
           <a href="#/settings" className="text-accent underline">
             Ajustes → Coach con IA
           </a>
-          . Se guarda solo en tu PC y nunca se envía al navegador. Coste orientativo: unos 2–3 céntimos de dólar por pregunta.
+          {STATIC ? '. Es tu propia clave: se guarda solo en este navegador y se envía únicamente a Anthropic. Coste orientativo' : '. Se guarda solo en tu PC y nunca se envía al navegador. Coste orientativo'}: unos 2–3 céntimos de dólar por pregunta.
         </p>
       </div>
     );

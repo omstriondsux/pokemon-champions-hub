@@ -6,3 +6,6 @@ data/snapshots/raw/
 data/backups/
 apps/web/dist/
 data/secrets.json
+*.db-shm
+*.db-wal
+.claude/settings.local.json

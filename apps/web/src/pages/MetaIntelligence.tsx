@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { RefreshCw, TrendingDown, TrendingUp } from 'lucide-react';
 import { archetypePresence, dex, getSpecies, parseSpread, statValue, topEntries, type MetaSnapshot } from '@pch/engine';
 import { useApp } from '../lib/app';
-import { api } from '../lib/api';
+import { api, STATIC } from '../lib/api';
 import { pct } from '../lib/pokemon';
 import type { Mode } from '../lib/types';
 import { Badge, PageHeader, Segmented, Sprite, Types } from '../components/ui';
@@ -38,7 +38,7 @@ export default function MetaIntelligence() {
     let live = true;
     const tick = () => api.metaStatus().then((s) => live && setStatus(s as Status));
     tick();
-    const id = setInterval(tick, 4000);
+    const id = STATIC ? undefined : setInterval(tick, 4000);
     return () => {
       live = false;
       clearInterval(id);
@@ -114,14 +114,18 @@ export default function MetaIntelligence() {
           <div className="mt-3 border-t border-line pt-2 text-xs text-muted">
             {status && (
               <>
-                Datos descargados: {status.indexUpdatedAt ? new Date(status.indexUpdatedAt).toLocaleString() : '—'} · auto cada {status.autoUpdateDays || '—'} días
+                Datos descargados: {status.indexUpdatedAt ? new Date(status.indexUpdatedAt).toLocaleString() : '—'} · {!STATIC && <>auto cada {status.autoUpdateDays || '—'} días</>}
                 {status.running && <div className="text-accent">Actualizando… {status.log.at(-1)}</div>}
                 {!status.running && status.lastExit != null && status.lastExit !== 0 && <div className="text-bad">La última actualización falló; se conservan los datos anteriores.</div>}
               </>
             )}
+            {STATIC ? (
+              <div className="mt-1 text-faint">La web se actualiza sola cada semana con los datos nuevos de Smogon.</div>
+            ) : (
             <button className="btn mt-2" disabled={status?.running} onClick={() => api.refreshMeta().then(() => api.metaStatus().then((s) => setStatus(s as Status)))}>
               <RefreshCw size={14} className={status?.running ? 'animate-spin' : ''} /> Actualizar ahora
             </button>
+            )}
           </div>
         </div>
       </div>

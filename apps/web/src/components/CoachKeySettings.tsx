@@ -1,37 +1,44 @@
 import { useEffect, useState } from 'react';
 import { CheckCircle2, KeyRound, Trash2 } from 'lucide-react';
+import { STATIC } from '../lib/api';
+import { coachStatus, removeCoachKey, saveCoachKey, type CoachStatus } from '../lib/coachClient';
 
-/** Saves the Anthropic API key on the local server (data/secrets.json). The key is never read back. */
+/** Saves the Anthropic API key: on the local server (local app) or in this browser only (public web). The key is never shown again. */
 export function CoachKeySettings() {
-  const [status, setStatus] = useState<{ configured: boolean; source: string; model: string }>();
+  const [status, setStatus] = useState<CoachStatus>();
   const [key, setKey] = useState('');
   const [msg, setMsg] = useState<string>();
-  const load = () => fetch('/api/coach/status').then((r) => r.json()).then(setStatus);
+  const load = () => coachStatus().then(setStatus);
   useEffect(() => {
     load();
   }, []);
 
   const save = async () => {
-    const r = await fetch('/api/coach/key', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key }) });
-    const b = await r.json().catch(() => ({}));
-    setMsg(r.ok ? 'Clave guardada en tu PC.' : (b.error ?? 'Clave no válida.'));
+    const r = await saveCoachKey(key);
+    setMsg(r.ok ? (STATIC ? 'Clave guardada en este navegador.' : 'Clave guardada en tu PC.') : (r.error ?? 'Clave no válida.'));
     if (r.ok) setKey('');
     load();
   };
   const remove = async () => {
-    await fetch('/api/coach/key', { method: 'DELETE' });
+    await removeCoachKey();
     setMsg('Clave eliminada.');
     load();
   };
 
+  const where = { env: '(variable de entorno del sistema)', file: '(clave guardada en este PC)', browser: '(clave guardada en este navegador)', none: '' } as const;
+
   return (
     <div className="panel mb-4 p-5">
       <div className="panel-title mb-3 flex items-center gap-2">
-        <KeyRound size={14} /> Coach con IA (Claude Sonnet 5.5)
+        <KeyRound size={14} /> Coach con IA (Claude Sonnet 5.5) · opcional
       </div>
       {status?.configured ? (
         <p className="mb-3 flex items-center gap-1.5 text-sm text-good">
-          <CheckCircle2 size={15} /> Configurado {status.source === 'env' ? '(variable de entorno del sistema)' : '(clave guardada en este PC)'}
+          <CheckCircle2 size={15} /> Configurado {where[status.source]}
+        </p>
+      ) : STATIC ? (
+        <p className="mb-3 text-sm text-muted">
+          Todo lo demás de la web es gratis y funciona sin esto. Para el chat con IA usas <b>tu propia</b> clave de Anthropic (se crea en <b>console.anthropic.com</b> → API Keys, con saldo de prepago). Se guarda solo en este navegador y se envía únicamente a la API de Anthropic. No la uses en un ordenador compartido.
         </p>
       ) : (
         <p className="mb-3 text-sm text-muted">
@@ -43,7 +50,7 @@ export function CoachKeySettings() {
         <button className="btn btn-primary" disabled={key.trim().length < 20} onClick={save}>
           Guardar clave
         </button>
-        {status?.source === 'file' && (
+        {(status?.source === 'file' || status?.source === 'browser') && (
           <button className="btn text-bad" onClick={remove}>
             <Trash2 size={14} /> Quitar clave
           </button>

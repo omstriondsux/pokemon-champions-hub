@@ -222,7 +222,12 @@ export default function App() {
         </nav>
         <div className="border-t border-line p-2">
           <NavItem r={SETTINGS} active={current.id === 'settings'} />
-          <p className="px-3 pt-2 text-[10px] leading-snug text-faint">Herramienta personal no oficial. Sin afiliación con Nintendo, Game Freak ni The Pokémon Company.</p>
+          <p className="px-3 pt-2 text-[10px] leading-snug text-faint">
+            Herramienta gratuita y no oficial, hecha por fans. Sin afiliación con Nintendo, Game Freak ni The Pokémon Company. Estadísticas de uso: Smogon / Pokémon Showdown.{' '}
+            <a className="underline" href="https://github.com/omstriondsux/pokemon-champions-hub" target="_blank" rel="noreferrer">
+              Código abierto
+            </a>
+          </p>
         </div>
       </aside>
       <main className="overflow-auto">

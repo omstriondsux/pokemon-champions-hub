@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
+  // GitHub Pages serves the site under /<repo>/; the local build stays at /.
+  base: process.env.VITE_BASE ?? '/',
   plugins: [react(), tailwindcss()],
   server: { port: 5173, host: '127.0.0.1', proxy: { '/api': 'http://127.0.0.1:8787' } },
   worker: { format: 'es' },

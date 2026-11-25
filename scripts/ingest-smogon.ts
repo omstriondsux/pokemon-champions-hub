@@ -17,7 +17,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_DIR = join(ROOT, 'data/snapshots/smogon');
 const LOG = join(ROOT, 'data/snapshots/ingest-log.jsonl');
 const BASE = 'https://www.smogon.com/stats';
-const UA = 'pch-data-ingest/0.1 (personal, non-commercial)';
+const UA = 'champions-hub-ingest/0.2 (open-source, non-commercial; monthly)';
 
 /** Showdown format per game mode. BSS = the singles format that mirrors in-game ranked (bring 3). */
 const FORMAT_PATTERNS: Record<'singles' | 'doubles', RegExp> = {

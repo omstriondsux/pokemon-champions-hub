@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.14.0",
     "@pch/engine": "0.1.0",
     "lucide-react": "1.79.0",
     "react": "19.3.1",
