@@ -73,6 +73,22 @@ export function createApp({ store, dataDir, updater }: AppOptions) {
     return c.json({ error: String(err.message ?? err) }, 500);
   });
 
+  // Any web page the user visits can fire requests at 127.0.0.1. Only accept requests that come from this
+  // app itself: right Host (blocks DNS rebinding), same-origin Origin / Sec-Fetch-Site (blocks CSRF), and a
+  // JSON content type on writes (a cross-site form or text/plain "simple request" can't set it without CORS).
+  app.use('/api/*', async (c, next) => {
+    const local = (u: string) => /^(127\.0\.0\.1|localhost|\[::1\])(:\d+)?$/i.test(u);
+    const host = c.req.header('host') ?? 'localhost';
+    const origin = c.req.header('origin');
+    const site = c.req.header('sec-fetch-site');
+    if (!local(host)) return c.json({ error: 'forbidden' }, 403);
+    if (origin && !/^https?:\/\/(127\.0\.0\.1|localhost|\[::1\])(:\d+)?$/i.test(origin)) return c.json({ error: 'forbidden' }, 403);
+    if (site && site !== 'same-origin' && site !== 'none') return c.json({ error: 'forbidden' }, 403);
+    if ((c.req.method === 'POST' || c.req.method === 'PUT') && !(c.req.header('content-type') ?? '').includes('application/json'))
+      return c.json({ error: 'Content-Type debe ser application/json' }, 415);
+    await next();
+  });
+
   app.get('/api/health', (c) => c.json({ ok: true }));
   registerCoach(app, dataDir);
 
