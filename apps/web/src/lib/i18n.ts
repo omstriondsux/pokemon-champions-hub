@@ -5,6 +5,8 @@ export type Lang = 'es' | 'en';
 const UI = {
   'nav.dashboard': ['Dashboard', 'Dashboard'],
   'nav.advisor': ['Battle Advisor', 'Battle Advisor'],
+  'nav.play': ['Contra la IA', 'Play the AI'],
+  'nav.replays': ['Analizar partidas', 'Replay review'],
   'nav.mypokemon': ['Mis Pokémon', 'My Pokémon'],
   'nav.teams': ['Equipos', 'Teams'],
   'nav.calc': ['Calculadora', 'Damage Calc'],

@@ -12,6 +12,7 @@
     "@pkmn/dex": "0.11.0",
     "@pkmn/mods": "0.11.0",
     "@pkmn/sets": "^7.0.0",
+    "@pkmn/sim": "^0.11.0",
     "@smogon/calc": "0.12.0",
     "zod": "^3.23.8"
   },
@@ -20,6 +21,8 @@
   },
   "exports": {
     ".": "./src/index.ts",
-    "./coach": "./src/coach.ts"
+    "./coach": "./src/coach.ts",
+    "./battle": "./src/battle/index.ts",
+    "./battle/log": "./src/battle/log.ts"
   }
 }

@@ -7,7 +7,7 @@ import { runAnalysis } from '../lib/worker';
 import type { Mode } from '../lib/types';
 import { useTeamIssues } from './Teams';
 import { Badge, PageHeader, scoreColor, signed, Sprite } from '../components/ui';
-import { ArrowRight, CheckCircle2, Circle, Swords as SwordsIcon, Boxes, Sparkles, MessageSquare } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Circle, Swords as SwordsIcon, Sparkles, Bot, LineChart } from 'lucide-react';
 import { MasterBall } from '../components/MasterBall';
 import { STATIC } from '../lib/api';
 
@@ -251,9 +251,9 @@ function GettingStarted({ mode }: { mode: Mode }) {
 function QuickActions() {
   const actions = [
     { href: '#/advisor', icon: SwordsIcon, title: 'Analizar rival', text: 'Antes del combate', primary: true },
-    { href: '#/pokemon', icon: Boxes, title: 'Mis Pokémon', text: 'Añadir o editar' },
+    { href: '#/play', icon: Bot, title: 'Contra la IA', text: 'Combate de práctica' },
+    { href: '#/replays', icon: LineChart, title: 'Analizar partidas', text: 'Tus replays de Showdown' },
     { href: '#/squad', icon: Sparkles, title: 'Armar equipo', text: 'Con tu inventario' },
-    { href: '#/coach', icon: MessageSquare, title: '¿Qué mejoro?', text: 'Debilidades del equipo' },
   ];
   return (
     <div className="mb-4 grid grid-cols-2 gap-3 xl:grid-cols-4">

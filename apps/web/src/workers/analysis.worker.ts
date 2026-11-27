@@ -20,6 +20,8 @@ import {
   type SituationInput,
   type SquadProfile,
 } from '@pch/engine';
+import { parseLog, reviewBattle, type Side, type SpreadGuessLite } from '@pch/engine/battle/log';
+import { dex as pkDex, parseSpread } from '@pch/engine';
 
 /**
  * All heavy analyses run here so the UI never blocks.
@@ -44,6 +46,7 @@ export type WorkerRequest =
   | (Base & { type: 'squad'; pool: PoolEntry[]; format: Format; profile: SquadProfile; locked: string[]; topN: number })
   | (Base & { type: 'recruit'; candidates: RecruitCandidate[]; pool: PoolEntry[]; format: Format; topN: number })
   | (Base & { type: 'situation'; input: SituationInput })
+  | (Base & { type: 'replay'; log: string; me?: Side; player?: string })
   | (Base & { type: 'counter'; opponents: string[]; format: Format; trickRoom: boolean; pool: PoolEntry[]; history?: Record<string, Reveals[]> });
 
 function reg(pack: RegulationPack) {
@@ -68,6 +71,21 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
     const R = reg(r.pack);
     let result: unknown;
     switch (r.type) {
+      case 'replay': {
+        const pb = parseLog(r.log);
+        const me: Side = r.me ?? (r.player && pb.players.p2.toLowerCase() === r.player.toLowerCase() ? 'p2' : 'p1');
+        const guess = (species: string): SpreadGuessLite | undefined => {
+          const m = s?.pokemon[species] ?? Object.entries(s?.pokemon ?? {}).find(([k]) => k.startsWith(`${species}-Mega`))?.[1];
+          if (!m) return undefined;
+          const top = (rec: Record<string, number>) => Object.entries(rec).sort((a, b) => b[1] - a[1])[0]?.[0];
+          const sp = parseSpread(top(m.spreads) ?? '');
+          const ab = top(m.abilities);
+          const it = top(m.items);
+          return sp ? { ...sp, ability: ab ? pkDex.abilities.get(ab).name : undefined, item: it ? pkDex.items.get(it).name : undefined } : undefined;
+        };
+        result = { result: { parsed: pb, review: reviewBattle(pb, me, R, guess) } };
+        break;
+      }
       case 'advise': {
         const models = await Promise.all(r.opponents.map((o) => opponentModel(o, s, { team: r.opponents, history: r.history?.[o] })));
         result = { result: adviseSelection(r.team, models, R, { format: r.format, trickRoom: r.trickRoom }, s?.meta), models };

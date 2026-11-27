@@ -1,5 +1,5 @@
 import { useEffect, useState, type ComponentType } from 'react';
-import { Activity, BookOpen, FlaskConical, Calculator, Gauge, History, LayoutDashboard, MessageSquare, Settings as SettingsIcon, Sparkles, Swords, Users, Wrench, Boxes, Moon, Sun, Menu } from 'lucide-react';
+import { Activity, BookOpen, FlaskConical, Calculator, Gauge, History, LayoutDashboard, MessageSquare, Settings as SettingsIcon, Sparkles, Swords, Users, Wrench, Boxes, Moon, Sun, Menu, Bot, LineChart } from 'lucide-react';
 import { useApp } from './lib/app';
 import { STATIC } from './lib/api';
 import type { UIKey } from './lib/i18n';
@@ -21,6 +21,8 @@ import SquadBuilder from './pages/SquadBuilder';
 import Recruitment from './pages/Recruitment';
 import Simulator from './pages/Simulator';
 import Coach from './pages/Coach';
+import PlayVsAI from './pages/PlayVsAI';
+import ReplayAnalyzer from './pages/ReplayAnalyzer';
 
 interface Route {
   id: string;
@@ -45,6 +47,8 @@ export const GROUPS: Group[] = [
     title: 'Jugar',
     routes: [
       { id: 'advisor', key: 'nav.advisor', icon: Swords, page: BattleAdvisor, hint: 'Qué sacar contra este rival' },
+      { id: 'play', key: 'nav.play', icon: Bot, page: PlayVsAI, hint: 'Combate de práctica con IA' },
+      { id: 'replays', key: 'nav.replays', icon: LineChart, page: ReplayAnalyzer, hint: 'Repasa tus partidas de Showdown' },
       { id: 'history', key: 'nav.history', icon: History, page: BattleHistory, hint: 'Apunta tus combates' },
     ],
   },
