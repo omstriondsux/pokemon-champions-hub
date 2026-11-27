@@ -59,14 +59,21 @@ export default function PlayVsAI() {
     if (!t) throw new Error('No se pudo armar un equipo');
     return t.members.map((i) => sub[i]!.build);
   };
+  // refs: generation is async, so always avoid the *latest* team and never run two at once
+  const myTeamRef = useRef<Build[]>([]);
+  myTeamRef.current = myTeam;
+  const botRunning = useRef(false);
   const rollBot = async () => {
+    if (botRunning.current) return;
+    botRunning.current = true;
     setBotBusy(true);
     setErr(undefined);
     try {
-      setBotTeam(await genTeam(myTeam));
+      setBotTeam(await genTeam(myTeamRef.current));
     } catch (e) {
       setErr(String(e instanceof Error ? e.message : e));
     } finally {
+      botRunning.current = false;
       setBotBusy(false);
     }
   };
@@ -87,13 +94,22 @@ export default function PlayVsAI() {
     if (!botTeam && pool.length) rollBot();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pool.length, mode]);
+  // your team changed and now shares Pokémon with the AI's: give the AI a different one
+  const myKey = myTeam.map((b) => b.species).join('|');
+  useEffect(() => {
+    if (!botTeam || phase !== 'setup') return;
+    const mine = new Set(myTeam.map((b) => b.species));
+    if (botTeam.filter((b) => mine.has(b.species)).length >= 2) rollBot();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myKey, botTeam]);
 
   const onMsg = (m: BattleOut) => {
-    if (m.type === 'error') return setErr(m.message);
+    if (m.type === 'error') return setStarting(false), setErr(m.message);
     if (m.type === 'thinking') return setThinking(m.on);
     if (m.type === 'botPreview') return setBotOrder(m.order);
     if (m.type === 'grade') return setAi((a) => ({ ...a, [m.turn]: { ...a[m.turn], botLabel: m.botLabel, botProb: m.botProb, yours: m.yours, best: m.best, bestLabel: m.bestLabel } }));
     if (m.type === 'view') {
+      setStarting(false);
       setView(m.view);
       if (m.view.lines.length) setLines((l) => [...l, ...m.view.lines]);
       const bt = m.view.botTurn;
@@ -102,8 +118,10 @@ export default function PlayVsAI() {
     }
   };
 
+  const [starting, setStarting] = useState(false);
   const start = async () => {
     if (!botTeam || myTeam.length < PICK[mode]) return;
+    setStarting(true);
     setErr(undefined);
     setLines([]);
     setAi({});
@@ -159,6 +177,7 @@ export default function PlayVsAI() {
           depth={depth}
           setDepth={setDepth}
           onStart={start}
+          starting={starting}
         />
       )}
       {phase === 'preview' && view && botTeam && <Preview mode={mode} myTeam={myTeam} botTeam={botTeam} onConfirm={(order) => client.current?.send({ type: 'preview', order })} />}
@@ -235,8 +254,9 @@ function Setup(p: {
   depth: number;
   setDepth: (n: number) => void;
   onStart: () => void;
+  starting: boolean;
 }) {
-  const ok = p.myTeam.length >= PICK[p.mode] && !!p.botTeam;
+  const ok = p.myTeam.length >= PICK[p.mode] && !!p.botTeam && !p.botBusy && !p.myBusy && !p.starting;
   return (
     <div className="space-y-4">
       <div className="panel p-4">
@@ -283,7 +303,7 @@ function Setup(p: {
         <Segmented value={String(p.depth)} onChange={(v) => p.setDepth(Number(v))} options={[1, 2, 3].map((d) => ({ value: String(d), label: DEPTH_LABEL[d]! }))} />
         <span className="text-[11px] text-faint">Más difícil = la IA prueba más jugadas por turno (tarda un poco más).</span>
         <button className="btn btn-primary ml-auto" disabled={!ok} onClick={p.onStart}>
-          <Swords size={15} /> Empezar combate
+          {p.starting ? <Loader2 size={15} className="animate-spin" /> : <Swords size={15} />} {p.starting ? 'Cargando el motor de combate…' : p.botBusy || p.myBusy ? 'Armando equipos…' : 'Empezar combate'}
         </button>
       </div>
     </div>
