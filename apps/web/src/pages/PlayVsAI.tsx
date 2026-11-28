@@ -9,6 +9,7 @@ import { resolveTeam, TYPE_COLORS } from '../lib/pokemon';
 import { runAnalysis } from '../lib/worker';
 import { createBattleClient } from '../lib/battleClient';
 import { api, type MetaTeam } from '../lib/api';
+import { saveKv } from '../lib/cloud';
 import type { Mode } from '../lib/types';
 import { Empty, ItemIcon, PageHeader, Segmented, Sprite } from '../components/ui';
 import { localiseNote, TurnReview, type AiTurnInfo } from '../components/TurnReview';
@@ -303,6 +304,7 @@ function useSideState(side: 'me' | 'bot', mode: Mode, teamId?: string): [SideSta
     setSt(s);
     try {
       localStorage.setItem(key, JSON.stringify(s));
+      saveKv(key, s);
     } catch {
       /* ignore */
     }

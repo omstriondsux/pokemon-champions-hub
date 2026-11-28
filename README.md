@@ -36,6 +36,8 @@ $env:VITE_STATIC='1'; $env:VITE_BASE='/pokemon-champions-hub/'; npm run build -w
 - **Equipos meta reales**: la IA juega con equipos completos de los mejores jugadores de Showdown (Reg M-C, rating ~1.550–1.800). En dobles salen de las hojas de equipo abiertas de las partidas Bo3: Pokémon, objeto, habilidad, movimientos y naturaleza exactos (los Stat Points, que no se muestran, se completan con los más usados). En individuales, la composición es real y los sets son los más probables. Se actualizan solos cada semana (`npm run ingest:teams`). Tú también puedes jugar con uno.
 - **Analizar partidas**: escribe tu usuario de Showdown (o pega un enlace de replay) y la app te marca la curva de ventaja, los turnos donde se te fue la partida, ataques contra Protección, dobles objetivos y KOs que tenías y no hiciste (calculados con el motor de daño).
 
+- **Cuentas (opcional)**: con una cuenta, todo lo que cambias se guarda solo y lo ves en cualquier dispositivo. Login seguro con Supabase (contraseñas cifradas, confirmación de correo, PKCE, Row Level Security). Cómo activarlo: [docs/CUENTAS.md](docs/CUENTAS.md).
+
 Todo corre en tu dispositivo: no hay servidor ni coste.
 
 ## Qué incluye

@@ -4,6 +4,8 @@ import { useApp } from '../lib/app';
 import { api, STATIC } from '../lib/api';
 import { Badge, PageHeader, Segmented } from '../components/ui';
 import { CoachKeySettings } from '../components/CoachKeySettings';
+import { AuthModal, SyncBadge } from '../components/Account';
+import { deleteAccount, signOut } from '../lib/cloud';
 
 function unverifiedRules(obj: unknown, path: string[] = [], out: { path: string; confidence: string; note?: string }[] = []) {
   if (!obj || typeof obj !== 'object') return out;
@@ -72,6 +74,7 @@ export default function Settings() {
       </div>
 
       {!STATIC && <CoachKeySettings />}
+      <AccountSettings />
 
       <div className="panel mb-4 p-5">
         <div className="panel-title mb-3">Copias de seguridad</div>
@@ -139,6 +142,57 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
       <div className="label">{label}</div>
       {children}
       {hint && <p className="mt-1 text-[11px] text-faint">{hint}</p>}
+    </div>
+  );
+}
+
+/** Optional account: what is saved, sign out, and delete everything. */
+function AccountSettings() {
+  const { account } = useApp();
+  const [login, setLogin] = useState(false);
+  const [msg, setMsg] = useState<string>();
+  if (!account.enabled) return null;
+  return (
+    <div className="panel mb-4 p-5">
+      <div className="panel-title mb-3">Tu cuenta</div>
+      {account.email ? (
+        <>
+          <div className="mb-2 flex flex-wrap items-center gap-3 text-sm">
+            <b>{account.email}</b>
+            <SyncBadge />
+          </div>
+          <p className="mb-3 text-sm text-muted">Tus Pokémon, builds, equipos, historial, ajustes y los equipos de «Contra la IA» se guardan en tu cuenta en cuanto los cambias. Al cerrar sesión se borran de este navegador (siguen en tu cuenta).</p>
+          <div className="flex flex-wrap gap-2">
+            <button className="btn" onClick={() => void signOut()}>
+              Cerrar sesión
+            </button>
+            <button
+              className="btn text-bad"
+              onClick={async () => {
+                const ok = window.prompt('Esto borra tu cuenta y TODO lo guardado en ella, para siempre. Escribe BORRAR para confirmar.');
+                if (ok !== 'BORRAR') return;
+                try {
+                  await deleteAccount();
+                  setMsg('Cuenta borrada.');
+                } catch (e) {
+                  setMsg(`No se pudo borrar: ${e instanceof Error ? e.message : String(e)}`);
+                }
+              }}
+            >
+              Borrar mi cuenta
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="mb-3 text-sm text-muted">Crea una cuenta gratis para que todo lo que cambies se guarde solo y lo veas en el móvil y en el PC.</p>
+          <button className="btn btn-primary" onClick={() => setLogin(true)}>
+            Entrar o crear cuenta
+          </button>
+          {login && <AuthModal onClose={() => setLogin(false)} />}
+        </>
+      )}
+      {msg && <p className="mt-2 text-sm text-muted">{msg}</p>}
     </div>
   );
 }

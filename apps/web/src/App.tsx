@@ -7,6 +7,7 @@ import type { Mode } from './lib/types';
 import { MasterBall, MASTER_BALL_FAVICON } from './components/MasterBall';
 import { Segmented, Sprite } from './components/ui';
 import { TabHub, type HubTab } from './components/TabHub';
+import { AccountButton, RecoveryModal } from './components/Account';
 import { resolveTeam } from './lib/pokemon';
 import Dashboard from './pages/Dashboard';
 import BattleAdvisor from './pages/BattleAdvisor';
@@ -216,7 +217,11 @@ function TopBar({ current, onMenu }: { current: Route; onMenu: () => void }) {
         <button className="btn btn-ghost hidden p-1.5 sm:inline-flex" title="Cambiar tema" onClick={() => saveSettings({ theme: settings.theme === 'dark' ? 'light' : 'dark' })}>
           {settings.theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
         </button>
+        <span className="ml-auto sm:ml-0">
+          <AccountButton />
+        </span>
       </div>
+      <RecoveryModal />
     </div>
   );
 }

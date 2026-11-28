@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { activeRegulation, Regulation, type MetaSnapshot } from '@pch/engine';
 import { api, STATIC } from './api';
+import { adoptSession, CLOUD, sb } from './cloud';
 import { makeNames, makeT, type NameTable, type Names } from './i18n';
 import { buildCatalog, mergeCatalog } from './catalog';
 import { DEFAULT_SETTINGS, type BattleRecord, type Mode, type OwnedPokemon, type Settings, type Team } from './types';
@@ -38,6 +39,11 @@ interface AppState {
   reload: () => Promise<void>;
   save: <T extends { id: string }>(c: 'pokemon' | 'teams' | 'battles', doc: T) => Promise<T>;
   remove: (c: 'pokemon' | 'teams' | 'battles', id: string) => Promise<void>;
+  /** Optional account (public web with Supabase configured). */
+  account: { enabled: boolean; email?: string };
+  /** The user opened a password-reset link: ask for the new password. */
+  recovery: boolean;
+  endRecovery: () => void;
 }
 
 const Ctx = createContext<AppState | null>(null);
@@ -84,6 +90,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setError(STATIC ? `No se pudieron cargar los datos: ${String(e)}` : `No se pudo conectar con el servidor local: ${String(e)}`);
       }
     })();
+  }, [reload]);
+
+  // accounts: merge the account with this browser on sign-in, clear it on sign-out, then refresh everything
+  const [account, setAccount] = useState<{ enabled: boolean; email?: string }>({ enabled: CLOUD });
+  const [recovery, setRecovery] = useState(false);
+  useEffect(() => {
+    if (!CLOUD) return;
+    let unsub: (() => void) | undefined;
+    const handle = async (session: import('@supabase/supabase-js').Session | null) => {
+      setAccount({ enabled: true, email: session?.user.email });
+      if (await adoptSession(session)) {
+        const s = await api.settings();
+        setSettings({ ...DEFAULT_SETTINGS, ...(s as Partial<Settings>) });
+        await reload();
+      }
+    };
+    sb().then((c) => {
+      c.auth.getSession().then(({ data }) => handle(data.session));
+      const { data } = c.auth.onAuthStateChange((event, session) => {
+        if (event === 'PASSWORD_RECOVERY') setRecovery(true);
+        // supabase-js: don't await other auth calls inside this callback
+        setTimeout(() => void handle(session), 0);
+      });
+      unsub = () => data.subscription.unsubscribe();
+    });
+    return () => unsub?.();
   }, [reload]);
 
   useEffect(() => {
@@ -183,6 +215,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     reload,
     save,
     remove,
+    account,
+    recovery,
+    endRecovery: () => setRecovery(false),
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

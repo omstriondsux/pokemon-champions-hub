@@ -82,6 +82,13 @@ const load = async <T>(m: Record<string, () => Promise<unknown>>, key: string): 
   return (await f()) as T;
 };
 
+/** Account sync (lib/cloud.ts registers these when someone signs in): every local write is mirrored. */
+type CloudHooks = { put: (c: Col, doc: { id: string }) => void; del: (c: Col, id: string) => void; settings: (s: Record<string, unknown>) => void };
+let hooks: CloudHooks | undefined;
+export const setCloudHooks = (h: CloudHooks) => {
+  hooks = h;
+};
+
 const browser: typeof server = {
   list: async <T>(c: Col) => Object.values(readCol(c)).sort((a, b) => String(b.updatedAt ?? '').localeCompare(String(a.updatedAt ?? ''))) as T[],
   put: async <T extends { id: string }>(c: Col, doc: T) => {
@@ -89,18 +96,21 @@ const browser: typeof server = {
     const withTs = { ...doc, updatedAt: new Date().toISOString() };
     all[doc.id] = withTs;
     writeCol(c, all);
+    hooks?.put(c, withTs);
     return withTs as T;
   },
   del: async (c: Col, id: string) => {
     const all = readCol(c);
     delete all[id];
     writeCol(c, all);
+    hooks?.del(c, id);
     return { ok: true as const };
   },
   settings: async () => readCol('settings'),
   putSettings: async (s: Record<string, unknown>) => {
     const next = { ...readCol('settings'), ...s };
     writeCol('settings', next as Record<string, unknown>);
+    hooks?.settings(next);
     return next;
   },
   regulations: () => Promise.all(Object.values(regFiles).map((f) => f())),
@@ -129,12 +139,19 @@ const browser: typeof server = {
     const imported: Record<string, number> = {};
     for (const c of COLS) {
       const docs = Array.isArray(d[c]) ? (d[c] as { id?: unknown }[]).filter((x) => x && typeof x.id === 'string') : [];
-      const all = mode === 'replace' ? {} : readCol(c);
+      const before = readCol(c);
+      const all = mode === 'replace' ? {} : before;
       for (const doc of docs) all[doc.id as string] = doc as Record<string, unknown>;
       writeCol(c, all);
+      if (mode === 'replace') for (const id of Object.keys(before)) if (!all[id]) hooks?.del(c, id);
+      for (const doc of Object.values(all)) hooks?.put(c, doc as { id: string });
       imported[c] = docs.length;
     }
-    if (d.settings && typeof d.settings === 'object') writeCol('settings', { ...(mode === 'replace' ? {} : readCol('settings')), ...(d.settings as object) });
+    if (d.settings && typeof d.settings === 'object') {
+      const next = { ...(mode === 'replace' ? {} : readCol('settings')), ...(d.settings as object) };
+      writeCol('settings', next);
+      hooks?.settings(next);
+    }
     return { imported };
   },
 };
