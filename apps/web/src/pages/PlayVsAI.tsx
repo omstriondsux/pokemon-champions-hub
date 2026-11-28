@@ -10,7 +10,8 @@ import { runAnalysis } from '../lib/worker';
 import { createBattleClient } from '../lib/battleClient';
 import type { Mode } from '../lib/types';
 import { Empty, ItemIcon, PageHeader, Segmented, Sprite } from '../components/ui';
-import { localiseNote, TurnReview, useActionText, type AiTurnInfo } from '../components/TurnReview';
+import { localiseNote, TurnReview, type AiTurnInfo } from '../components/TurnReview';
+import { BattleScene, useScenePlayer } from '../components/BattleScene';
 
 const PICK: Record<Mode, number> = { doubles: 4, singles: 3 };
 const PROFILES = ['balanced', 'aggressive', 'antimeta', 'speed', 'consistency'] as const;
@@ -182,7 +183,7 @@ export default function PlayVsAI() {
       )}
       {phase === 'preview' && view && botTeam && <Preview mode={mode} myTeam={myTeam} botTeam={botTeam} onConfirm={(order) => client.current?.send({ type: 'preview', order })} />}
       {(phase === 'battle' || phase === 'over') && view && parsed && (
-        <BattleScreen view={view} parsed={parsed} thinking={thinking} ai={ai} over={phase === 'over'} onChoose={(c) => client.current?.send({ type: 'choose', choice: c })} />
+        <BattleScreen view={view} parsed={parsed} lines={lines} thinking={thinking} ai={ai} over={phase === 'over'} onChoose={(c) => client.current?.send({ type: 'choose', choice: c })} />
       )}
       {phase === 'over' && (
         <div className="mt-5">
@@ -380,52 +381,37 @@ function MonCard({ species, hp, status, forme }: { species: string; hp: number; 
   );
 }
 
-function BattleScreen({ view, parsed, thinking, ai, over, onChoose }: { view: View; parsed: ParsedBattle; thinking: boolean; ai: Record<number, AiTurnInfo>; over: boolean; onChoose: (c: string) => void }) {
+function BattleScreen({ view, parsed, lines, thinking, ai, over, onChoose }: { view: View; parsed: ParsedBattle; lines: string[]; thinking: boolean; ai: Record<number, AiTurnInfo>; over: boolean; onChoose: (c: string) => void }) {
   const { names } = useApp();
-  const text = useActionText();
-  const last = parsed.turns.at(-1);
-  const act = (s: Side) => (last?.activeEnd[s] ?? []).filter(Boolean) as { species: string; hp: number; status?: string; fainted: boolean }[];
+  const { scene, busy, speed, setSpeed, skipNow } = useScenePlayer(lines);
+  const lastBot = ai[view.turn - 1];
   const bench = (s: Side) => {
     const st = teamState(parsed, s);
-    const onField = new Set(act(s).map((m) => m.species));
+    const onField = new Set((scene.slots[s] ?? []).filter(Boolean).map((m) => m!.species));
     return parsed.brought[s].filter((x) => !onField.has(x)).map((x) => st[x] ?? { species: x, hp: 100, fainted: false });
   };
-  const field = [parsed.field.weather, ...parsed.field.fields, ...parsed.field.sides.p1.map((x) => `Tú: ${x}`), ...parsed.field.sides.p2.map((x) => `IA: ${x}`)].filter(Boolean) as string[];
-  const recent = parsed.turns.slice(-2).flatMap((t) => t.actions.map((a) => ({ t: t.turn, a })));
-  const lastBot = ai[view.turn - 1];
+  const doubles = parsed.gameType === 'doubles';
+  const ended = over && !busy;
 
   return (
     <div className="space-y-3">
-      <div className="panel p-3">
-        <div className="mb-2 flex items-center gap-2 text-xs text-muted">
-          <Bot size={14} /> IA {bench('p2').length > 0 && <span className="flex gap-0.5">{bench('p2').map((m) => <Sprite key={m.species} species={m.species} size={22} kind="icon" className={m.fainted ? 'opacity-30 grayscale' : ''} />)}</span>}
-          <span className="ml-auto num">Turno {view.turn}</span>
-        </div>
-        <div className="flex gap-2">
-          {act('p2').map((m, i) => (
-            <MonCard key={i} species={m.species} hp={m.hp} status={m.status} forme={parsed.forme.p2[m.species]} />
+      <div className="flex items-center gap-2 text-xs text-muted">
+        <Bot size={14} /> IA
+        <span className="flex gap-0.5">
+          {bench('p2').map((m) => (
+            <Sprite key={m.species} species={m.species} size={22} kind="icon" className={m.fainted ? 'opacity-30 grayscale' : ''} />
           ))}
-        </div>
-        {field.length > 0 && (
-          <div className="my-2 flex flex-wrap gap-1">
-            {field.map((f) => (
-              <span key={f} className="chip text-[10px]">
-                {f}
-              </span>
-            ))}
-          </div>
-        )}
-        <div className="mt-2 flex gap-2">
-          {act('p1').map((m, i) => (
-            <MonCard key={i} species={m.species} hp={m.hp} status={m.status} forme={parsed.forme.p1[m.species]} />
+        </span>
+        <span className="ml-auto">Tu banca</span>
+        <span className="flex gap-0.5">
+          {bench('p1').map((m) => (
+            <Sprite key={m.species} species={m.species} size={22} kind="icon" className={m.fainted ? 'opacity-30 grayscale' : ''} />
           ))}
-        </div>
-        <div className="mt-2 flex items-center gap-2 text-xs text-muted">
-          Tú {bench('p1').length > 0 && <span className="flex gap-0.5">{bench('p1').map((m) => <Sprite key={m.species} species={m.species} size={22} kind="icon" className={m.fainted ? 'opacity-30 grayscale' : ''} />)}</span>}
-        </div>
+        </span>
       </div>
+      <BattleScene scene={scene} doubles={doubles} speed={speed} setSpeed={setSpeed} busy={busy} onSkip={skipNow} />
 
-      {!over && (thinking || view.phase === 'wait' ? (
+      {!over && !busy && (thinking || view.phase === 'wait' ? (
         <div className="panel flex items-center gap-2 p-4 text-sm text-muted">
           <Loader2 size={16} className="animate-spin" /> La IA está pensando…
         </div>
@@ -433,28 +419,16 @@ function BattleScreen({ view, parsed, thinking, ai, over, onChoose }: { view: Vi
         <ActionPanel view={view} parsed={parsed} onChoose={onChoose} />
       ))}
 
-      {over && (
+      {ended && (
         <div className={`panel p-4 text-center font-display text-2xl font-bold ${view.winner === 'Tú' ? 'text-good' : 'text-bad'}`}>{view.winner === 'Tú' ? '¡Ganaste!' : view.winner ? 'Ganó la IA' : 'Empate'}</div>
       )}
 
-      <div className="panel p-3 text-sm">
-        <div className="panel-title mb-1.5">Último turno</div>
-        {recent.length ? (
-          recent.map(({ t, a }, i) => (
-            <p key={i} className={a.side === 'p1' ? '' : 'text-muted'}>
-              <span className="num mr-1.5 text-[10px] text-faint">T{t}</span>
-              {text(a)}
-            </p>
-          ))
-        ) : (
-          <p className="text-muted">¡Empieza el combate!</p>
-        )}
-        {lastBot?.strategy && lastBot.strategy.length > 1 && (
-          <p className="mt-2 text-xs text-faint">
-            La IA jugó «{localiseNote(lastBot.botLabel, names)}» ({Math.round(lastBot.botProb * 100)}%). Su mezcla: {lastBot.strategy.slice(0, 3).map((s) => `${Math.round(s.prob * 100)}% ${localiseNote(s.label, names)}`).join(' · ')}
-          </p>
-        )}
-      </div>
+      {!busy && lastBot?.strategy && lastBot.strategy.length > 1 && (
+        <p className="text-xs text-faint">
+          <Bot size={12} className="mr-1 inline" />
+          Turno {view.turn - 1}: la IA jugó «{localiseNote(lastBot.botLabel, names)}» ({Math.round(lastBot.botProb * 100)}% de las veces). Su mezcla: {lastBot.strategy.slice(0, 3).map((s) => `${Math.round(s.prob * 100)}% ${localiseNote(s.label, names)}`).join(' · ')}
+        </p>
+      )}
       <p className="text-[11px] text-faint">La IA no ve tu jugada ni tus Stat Points reales (supone los más usados del meta). Ve tus movimientos, objetos y habilidades porque Reg M-C se juega con hojas de equipo abiertas.</p>
     </div>
   );
@@ -528,11 +502,11 @@ function ActionPanel({ view, parsed, onChoose }: { view: View; parsed: ParsedBat
                           if (!target) set(s, `move ${j + 1}`, names.move(m.move));
                           else setPendingMove({ slot: s, j });
                         }}
-                        className={`rounded-lg border px-2 py-1.5 text-left text-sm disabled:opacity-40 ${sel ? 'ring-2 ring-accent' : ''}`}
-                        style={{ borderColor: col, background: `${col}22` }}
+                        className={`move-btn ${sel ? 'is-picked' : ''}`}
+                        style={{ '--c': col } as React.CSSProperties}
                       >
-                        <span className="block font-medium">{names.move(m.move)}</span>
-                        <span className="text-[10px] text-muted">
+                        <span className="block text-[15px] font-bold">{names.move(m.move)}</span>
+                        <span className="text-[10px] opacity-90">
                           {names.type(mv.type)} · {mv.category === 'Status' ? 'Estado' : `${mv.basePower || '—'} pot.`} · PP {m.pp}/{m.maxpp}
                         </span>
                       </button>
