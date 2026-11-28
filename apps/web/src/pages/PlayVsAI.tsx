@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Bot, Dices, Flag, Loader2, RotateCcw, Swords } from 'lucide-react';
-import { dex, type Build } from '@pch/engine';
+import { dex, getSpecies, type Build } from '@pch/engine';
 import { parseLog, teamState, type ParsedBattle, type Review, type Side } from '@pch/engine/battle/log';
 import type { BattleOut, View } from '../workers/battle.worker';
 import { useApp } from '../lib/app';
@@ -11,7 +11,8 @@ import { createBattleClient } from '../lib/battleClient';
 import type { Mode } from '../lib/types';
 import { Empty, ItemIcon, PageHeader, Segmented, Sprite } from '../components/ui';
 import { localiseNote, TurnReview, type AiTurnInfo } from '../components/TurnReview';
-import { BattleScene, useScenePlayer } from '../components/BattleScene';
+import { useScenePlayer, type SceneState, type Side as SceneSide } from '../components/BattleScene';
+import { BattleSceneView } from '../components/BattleSceneView';
 
 const PICK: Record<Mode, number> = { doubles: 4, singles: 3 };
 const PROFILES = ['balanced', 'aggressive', 'antimeta', 'speed', 'consistency'] as const;
@@ -385,16 +386,33 @@ function BattleScreen({ view, parsed, lines, thinking, ai, over, onChoose }: { v
   const { names } = useApp();
   const { scene, busy, speed, setSpeed, skipNow } = useScenePlayer(lines);
   const lastBot = ai[view.turn - 1];
+  const doubles = parsed.gameType === 'doubles';
+  const ended = over && !busy;
+  const yourTurn = !over && !busy && !thinking && (view.phase === 'move' || view.phase === 'switch');
+  const cmd = useCommand(view, scene, doubles, onChoose, yourTurn);
+  const frameRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    frameRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, []);
   const bench = (s: Side) => {
     const st = teamState(parsed, s);
     const onField = new Set((scene.slots[s] ?? []).filter(Boolean).map((m) => m!.species));
     return parsed.brought[s].filter((x) => !onField.has(x)).map((x) => st[x] ?? { species: x, hp: 100, fainted: false });
   };
-  const doubles = parsed.gameType === 'doubles';
-  const ended = over && !busy;
+
+  let box: ReactNode | undefined;
+  if (yourTurn) box = cmd.node;
+  else if (!over && !busy && (thinking || view.phase === 'wait'))
+    box = (
+      <span className="px-text flex items-center gap-2">
+        <Loader2 size={16} className="animate-spin" /> La IA está pensando…
+      </span>
+    );
+  else if (ended)
+    box = <span className={`px-text text-center text-2xl ${view.winner === 'Tú' ? 'text-good' : 'text-bad'}`}>{view.winner === 'Tú' ? '¡Ganaste el combate!' : view.winner ? 'La IA ganó el combate.' : 'Empate.'}</span>;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2" ref={frameRef}>
       <div className="flex items-center gap-2 text-xs text-muted">
         <Bot size={14} /> IA
         <span className="flex gap-0.5">
@@ -409,20 +427,7 @@ function BattleScreen({ view, parsed, lines, thinking, ai, over, onChoose }: { v
           ))}
         </span>
       </div>
-      <BattleScene scene={scene} doubles={doubles} speed={speed} setSpeed={setSpeed} busy={busy} onSkip={skipNow} />
-
-      {!over && !busy && (thinking || view.phase === 'wait' ? (
-        <div className="panel flex items-center gap-2 p-4 text-sm text-muted">
-          <Loader2 size={16} className="animate-spin" /> La IA está pensando…
-        </div>
-      ) : (
-        <ActionPanel view={view} parsed={parsed} onChoose={onChoose} />
-      ))}
-
-      {ended && (
-        <div className={`panel p-4 text-center font-display text-2xl font-bold ${view.winner === 'Tú' ? 'text-good' : 'text-bad'}`}>{view.winner === 'Tú' ? '¡Ganaste!' : view.winner ? 'Ganó la IA' : 'Empate'}</div>
-      )}
-
+      <BattleSceneView scene={scene} doubles={doubles} speed={speed} setSpeed={setSpeed} busy={busy} onSkip={skipNow} command={box} targeting={yourTurn ? cmd.targeting : undefined} activeSlot={cmd.activeSlot} />
       {!busy && lastBot?.strategy && lastBot.strategy.length > 1 && (
         <p className="text-xs text-faint">
           <Bot size={12} className="mr-1 inline" />
@@ -434,127 +439,191 @@ function BattleScreen({ view, parsed, lines, thinking, ai, over, onChoose }: { v
   );
 }
 
-function ActionPanel({ view, parsed, onChoose }: { view: View; parsed: ParsedBattle; onChoose: (c: string) => void }) {
+/** Type effectiveness of a move type against a species (abilities like Levitate are not considered). */
+function effectiveness(moveType: string, species: string): number {
+  const types = getSpecies(species)?.types ?? [];
+  if (!types.length) return 1;
+  if (!dex.getImmunity(moveType, types)) return 0;
+  return 2 ** dex.getEffectiveness(moveType, types);
+}
+
+/**
+ * Your commands, inside the battle box: one Pokémon at a time ("¿Qué hará X?"), moves with type,
+ * PP and effectiveness against each rival, Mega, switch, and targets picked by tapping the rival.
+ * The turn is sent as soon as every Pokémon has an order.
+ */
+function useCommand(view: View, scene: SceneState, doubles: boolean, onChoose: (c: string) => void, live: boolean) {
   const { names } = useApp();
-  const doubles = parsed.gameType === 'doubles';
   const actives = view.team.filter((p) => p.active);
-  const benchIdx = view.team.map((p, i) => ({ p, i })).filter(({ p }) => !p.active && !p.condition.endsWith('fnt'));
-  const foes = (parsed.turns.at(-1)?.activeEnd.p2 ?? []).map((m) => m && !m.fainted ? m.species : null);
   const slots = view.phase === 'switch' ? view.forceSwitch.length : view.active.length;
+  const needed = Array.from({ length: slots }, (_, s) => (view.phase === 'switch' ? !!view.forceSwitch[s] : !(actives[s]?.condition.endsWith('fnt') ?? true)));
   const [picks, setPicks] = useState<(string | undefined)[]>([]);
-  const [labels, setLabels] = useState<(string | undefined)[]>([]);
-  const [pendingMove, setPendingMove] = useState<{ slot: number; j: number }>();
-  const [mega, setMega] = useState<number>(-1);
+  const [cur, setCur] = useState(0);
+  const [mode, setMode] = useState<'moves' | 'switch' | 'target'>('moves');
+  const [pending, setPending] = useState<number>();
+  const [mega, setMega] = useState(-1);
+
+  const first = needed.findIndex(Boolean);
   useEffect(() => {
     setPicks([]);
-    setLabels([]);
-    setPendingMove(undefined);
+    setCur(first < 0 ? 0 : first);
+    setMode(view.phase === 'switch' ? 'switch' : 'moves');
+    setPending(undefined);
     setMega(-1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view]);
 
-  const needed = Array.from({ length: slots }, (_, s) => {
-    if (view.phase === 'switch') return !!view.forceSwitch[s];
-    return !(actives[s]?.condition.endsWith('fnt') ?? true);
-  });
-  const set = (s: number, choice: string, label: string) => {
-    setPicks((p) => Object.assign([...p], { [s]: choice }));
-    setLabels((l) => Object.assign([...l], { [s]: label }));
-    setPendingMove(undefined);
+  const nextOf = (s: number) => needed.findIndex((n, k) => n && k > s);
+  const prevOf = (s: number) => {
+    for (let k = s - 1; k >= 0; k--) if (needed[k]) return k;
+    return -1;
   };
-  const ready = needed.every((n, s) => !n || picks[s]);
-  const submit = () => {
-    const parts = needed.map((n, s) => (!n ? 'pass' : picks[s]!.replace(' mega', '') + (mega === s && !picks[s]!.startsWith('switch') ? ' mega' : '')));
+  const commit = (s: number, choice: string) => {
+    const np = Object.assign([...picks], { [s]: choice });
+    setPicks(np);
+    setPending(undefined);
+    const nx = nextOf(s);
+    if (nx >= 0) {
+      setCur(nx);
+      setMode(view.phase === 'switch' ? 'switch' : 'moves');
+      return;
+    }
+    const parts = needed.map((n, k) => (!n ? 'pass' : np[k]! + (mega === k && np[k]!.startsWith('move') ? ' mega' : '')));
     onChoose(parts.join(', '));
   };
 
-  return (
-    <div className="panel p-3">
-      {Array.from({ length: slots }, (_, s) => {
-        if (!needed[s]) return null;
-        const me = view.phase === 'switch' ? undefined : actives[s];
-        const a = view.active[s];
-        return (
-          <div key={s} className="mb-3 last:mb-0">
-            <div className="mb-1.5 flex items-center gap-2 text-sm font-semibold">
-              {me ? (
-                <>
-                  <Sprite species={me.species} size={26} kind="icon" /> {names.species(me.species)}
-                  <span className="num text-xs font-normal text-muted">{me.condition.split(' ')[0]}</span>
-                </>
-              ) : (
-                'Elige quién entra'
-              )}
-              {labels[s] && <span className="chip ml-auto text-accent">{labels[s]}</span>}
-            </div>
-            {view.phase === 'move' && a && (
-              <>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {a.moves.map((m, j) => {
-                    const mv = dex.moves.get(m.move);
-                    const col = TYPE_COLORS[mv.type] ?? '#888';
-                    const sel = picks[s]?.startsWith(`move ${j + 1}`);
-                    return (
-                      <button
-                        key={j}
-                        disabled={m.disabled || m.pp <= 0}
-                        onClick={() => {
-                          const target = doubles && NEEDS_TARGET.has(m.target);
-                          if (!target) set(s, `move ${j + 1}`, names.move(m.move));
-                          else setPendingMove({ slot: s, j });
-                        }}
-                        className={`move-btn ${sel ? 'is-picked' : ''}`}
-                        style={{ '--c': col } as React.CSSProperties}
-                      >
-                        <span className="block text-[15px] font-bold">{names.move(m.move)}</span>
-                        <span className="text-[10px] opacity-90">
-                          {names.type(mv.type)} · {mv.category === 'Status' ? 'Estado' : `${mv.basePower || '—'} pot.`} · PP {m.pp}/{m.maxpp}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-                {pendingMove?.slot === s && (
-                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-sm">
-                    <span className="text-muted">¿A quién?</span>
-                    {(() => {
-                      const m = a.moves[pendingMove.j]!;
-                      const allyT = s === 0 ? -2 : -1;
-                      const opts: { t: number; label: string }[] = m.target === 'adjacentAlly' || m.target === 'adjacentAllyOrSelf' ? [{ t: allyT, label: 'Aliado' }] : foes.map((f, k) => (f ? { t: k + 1, label: names.species(f) } : null)).filter(Boolean) as { t: number; label: string }[];
-                      if (m.target === 'any') opts.push({ t: allyT, label: 'Aliado' });
-                      return opts.map((o) => (
-                        <button key={o.t} className="btn text-xs" onClick={() => set(s, `move ${pendingMove.j + 1} ${o.t}`, `${names.move(m.move)} → ${o.label}`)}>
-                          {o.label}
-                        </button>
-                      ));
-                    })()}
-                  </div>
+  const me = view.phase === 'switch' ? undefined : actives[cur];
+  const a = view.active[cur];
+  const foes = scene.slots.p2.map((m, i) => (m && !m.fainted ? { slot: i, species: m.forme ?? m.species } : null)).filter(Boolean) as { slot: number; species: string }[];
+  const allyT = cur === 0 ? -2 : -1;
+  const pendingMove = pending !== undefined && a ? a.moves[pending] : undefined;
+  const targetOpts = pendingMove
+    ? [
+        ...(pendingMove.target === 'adjacentAlly' || pendingMove.target === 'adjacentAllyOrSelf' ? [] : foes.map((f) => ({ t: f.slot + 1, side: 'p2' as Side, slot: f.slot, label: names.species(f.species) }))),
+        ...(pendingMove.target === 'adjacentAlly' || pendingMove.target === 'adjacentAllyOrSelf' || pendingMove.target === 'any'
+          ? scene.slots.p1[cur === 0 ? 1 : 0] && !scene.slots.p1[cur === 0 ? 1 : 0]!.fainted
+            ? [{ t: allyT, side: 'p1' as Side, slot: cur === 0 ? 1 : 0, label: `${names.species(scene.slots.p1[cur === 0 ? 1 : 0]!.species)} (aliado)` }]
+            : []
+          : []),
+      ]
+    : [];
+  const bench = view.team.map((p, i) => ({ p, i })).filter(({ p }) => !p.active && !p.condition.endsWith('fnt'));
+  const pickMove = (j: number) => {
+    const m = a!.moves[j]!;
+    if (doubles && NEEDS_TARGET.has(m.target)) {
+      setPending(j);
+      setMode('target');
+    } else commit(cur, `move ${j + 1}`);
+  };
+
+  const title =
+    view.phase === 'switch' ? '¿Qué Pokémon sale?' : mode === 'target' ? `¿A quién? Toca un Pokémon o elige abajo.` : mode === 'switch' ? `¿Por quién cambias a ${names.species(me?.species)}?` : `¿Qué hará ${names.species(me?.species)}?`;
+
+  const node = (
+    <div>
+      <div className="mb-2 flex flex-wrap items-center gap-1.5">
+        <span className="px-cmd-title mr-auto">{title}</span>
+        {view.phase === 'move' && mode !== 'target' && a?.canMegaEvo && (mega < 0 || mega === cur) && (
+          <button className={`px-btn text-xs ${mega === cur ? 'is-on' : ''}`} onClick={() => setMega(mega === cur ? -1 : cur)}>
+            ✦ Megaevolución
+          </button>
+        )}
+        {view.phase === 'move' && mode === 'moves' && !a?.trapped && bench.length > 0 && (
+          <button className="px-btn text-xs" onClick={() => setMode('switch')}>
+            ⇄ Pokémon
+          </button>
+        )}
+        {view.phase === 'move' && mode !== 'moves' && (
+          <button
+            className="px-btn text-xs"
+            onClick={() => {
+              setMode('moves');
+              setPending(undefined);
+            }}
+          >
+            ← Ataques
+          </button>
+        )}
+        {prevOf(cur) >= 0 && (
+          <button
+            className="px-btn text-xs"
+            onClick={() => {
+              setCur(prevOf(cur));
+              setMode(view.phase === 'switch' ? 'switch' : 'moves');
+              setPending(undefined);
+            }}
+          >
+            ↶ Atrás
+          </button>
+        )}
+      </div>
+
+      {view.phase === 'move' && mode === 'moves' && a && (
+        <div className="grid grid-cols-2 gap-1.5">
+          {a.moves.map((m, j) => {
+            const mv = dex.moves.get(m.move);
+            const col = TYPE_COLORS[mv.type] ?? '#888';
+            const effs = mv.category === 'Status' ? [] : foes.map((f) => ({ f, e: effectiveness(mv.type, f.species) })).filter((x) => x.e !== 1);
+            return (
+              <button key={j} disabled={m.disabled || m.pp <= 0} onClick={() => pickMove(j)} className="move-btn" style={{ '--c': col } as CSSProperties}>
+                <span className="block text-[15px] leading-tight sm:text-base">{names.move(m.move)}</span>
+                <span className="block text-[10px] opacity-95">
+                  {names.type(mv.type)} · {mv.category === 'Status' ? 'Estado' : `Pot. ${mv.basePower || '—'}`} · PP {m.pp}/{m.maxpp}
+                </span>
+                {effs.length > 0 && (
+                  <span className="mt-0.5 block text-[10px]">
+                    {effs.map(({ f, e }) => (
+                      <span key={f.slot} className={`eff-tag ${e === 0 ? 'eff-0' : e > 1 ? 'eff-2' : 'eff-05'}`}>
+                        {e === 0 ? 'No afecta' : `×${e}`}
+                        {doubles ? ` ${names.species(f.species)}` : ''}
+                      </span>
+                    ))}
+                  </span>
                 )}
-                {a.canMegaEvo && (
-                  <label className="mt-1.5 flex items-center gap-1.5 text-xs">
-                    <input type="checkbox" checked={mega === s} onChange={(e) => setMega(e.target.checked ? s : -1)} /> Megaevolucionar
-                  </label>
-                )}
-              </>
-            )}
-            {(view.phase === 'switch' || (a && !a.trapped)) && benchIdx.length > 0 && (
-              <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                {view.phase === 'move' && <span className="text-xs text-muted">Cambiar a:</span>}
-                {benchIdx.map(({ p, i }) => {
-                  const taken = picks.some((x, k) => k !== s && x === `switch ${i + 1}`);
-                  return (
-                    <button key={i} disabled={taken} className={`btn text-xs ${picks[s] === `switch ${i + 1}` ? 'ring-2 ring-accent' : ''}`} onClick={() => set(s, `switch ${i + 1}`, `Cambia a ${names.species(p.species)}`)}>
-                      <Sprite species={p.species} size={20} kind="icon" /> {names.species(p.species)} <span className="num text-faint">{p.condition.split(' ')[0]}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        );
-      })}
-      <button className="btn btn-primary w-full" disabled={!ready} onClick={submit}>
-        Confirmar jugada
-      </button>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {mode === 'target' && (
+        <div className="flex flex-wrap gap-1.5">
+          {targetOpts.map((o) => (
+            <button key={o.t} className="px-btn" onClick={() => commit(cur, `move ${pending! + 1} ${o.t}`)}>
+              {o.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {(mode === 'switch' || view.phase === 'switch') && (
+        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+          {bench.map(({ p, i }) => {
+            const taken = picks.some((x, k) => k !== cur && x === `switch ${i + 1}`);
+            return (
+              <button key={i} disabled={taken} className="px-btn flex items-center gap-1.5 text-left" onClick={() => commit(cur, `switch ${i + 1}`)}>
+                <Sprite species={p.species} size={28} kind="icon" />
+                <span className="min-w-0">
+                  <span className="block truncate text-sm">{names.species(p.species)}</span>
+                  <span className="block text-[10px] opacity-80">{p.condition.split(' ')[0]}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
+
+  const targeting =
+    live && mode === 'target'
+      ? {
+          targets: targetOpts.map((o) => ({ side: o.side, slot: o.slot })),
+          onPick: (side: Side, slot: number) => {
+            const o = targetOpts.find((x) => x.side === side && x.slot === slot);
+            if (o) commit(cur, `move ${pending! + 1} ${o.t}`);
+          },
+        }
+      : undefined;
+  return { node, targeting, activeSlot: view.phase === 'move' ? cur : undefined };
 }
