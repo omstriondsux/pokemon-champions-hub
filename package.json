@@ -13,7 +13,8 @@
     "validate:rules": "tsx scripts/validate-regulations.ts",
     "dev": "concurrently -k -n server,web -c cyan,magenta \"npm run dev -w @pch/server\" \"npm run dev -w @pch/web\"",
     "start": "npm run build -w @pch/web && npm run start -w @pch/server",
-    "build:i18n": "tsx scripts/build-i18n.ts"
+    "build:i18n": "tsx scripts/build-i18n.ts",
+    "ingest:teams": "tsx scripts/ingest-teams.ts"
   },
   "devDependencies": {
     "concurrently": "^10.0.7",

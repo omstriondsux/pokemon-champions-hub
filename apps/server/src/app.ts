@@ -141,6 +141,11 @@ export function createApp({ store, dataDir, updater }: AppOptions) {
     const p = safe(`snapshots/${file}`);
     return existsSync(p) ? c.json(JSON.parse(readFileSync(p, 'utf8'))) : c.json({ error: 'not found' }, 404);
   });
+  app.get('/api/meta/teams', (c) => {
+    const mode = c.req.query('mode') === 'singles' ? 'singles' : 'doubles';
+    const p = join(dataDir, 'teams', `${mode}.json`);
+    return c.json(existsSync(p) ? JSON.parse(readFileSync(p, 'utf8')) : { teams: [] });
+  });
   app.get('/api/meta/status', (c) => c.json(updater?.getStatus() ?? { running: false, log: [], disabled: true }));
   app.post('/api/meta/refresh', (c) => (updater ? c.json({ started: updater.run('manual') }) : c.json({ error: 'updater not available' }, 503)));
 

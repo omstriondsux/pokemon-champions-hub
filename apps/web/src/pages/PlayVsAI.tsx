@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { Bot, Dices, Flag, Loader2, RotateCcw, Swords } from 'lucide-react';
-import { dex, getSpecies, type Build } from '@pch/engine';
+import { Bot, Dices, ExternalLink, Flag, Loader2, RotateCcw, Swords, Trophy } from 'lucide-react';
+import { dex, getSpecies, makeBuild, type Build } from '@pch/engine';
 import { parseLog, teamState, type ParsedBattle, type Review, type Side } from '@pch/engine/battle/log';
 import type { BattleOut, View } from '../workers/battle.worker';
 import { useApp } from '../lib/app';
@@ -8,6 +8,7 @@ import { usePool } from '../lib/pool';
 import { resolveTeam, TYPE_COLORS } from '../lib/pokemon';
 import { runAnalysis } from '../lib/worker';
 import { createBattleClient } from '../lib/battleClient';
+import { api, type MetaTeam } from '../lib/api';
 import type { Mode } from '../lib/types';
 import { Empty, ItemIcon, PageHeader, Segmented, Sprite } from '../components/ui';
 import { localiseNote, TurnReview, type AiTurnInfo } from '../components/TurnReview';
@@ -31,6 +32,26 @@ export default function PlayVsAI() {
   const saved = useMemo(() => resolveTeam(teams.find((t) => t.id === teamId), pokemon).builds, [teams, teamId, pokemon]);
   const myTeam = teamId === '__gen' || !modeTeams.length ? (myGen ?? []) : saved;
   const [botTeam, setBotTeam] = useState<Build[]>();
+  const [botInfo, setBotInfo] = useState<MetaTeam>();
+  const [myInfo, setMyInfo] = useState<MetaTeam>();
+  const [meta, setMeta] = useState<MetaTeam[]>();
+  useEffect(() => {
+    setMeta(undefined);
+    api
+      .metaTeams(mode)
+      .then((f) => setMeta(f.teams ?? []))
+      .catch(() => setMeta([]));
+  }, [mode]);
+  /** A real meta team, weighted by how often it was seen; never the exact team on the other side. */
+  const pickMeta = (avoid?: MetaTeam): MetaTeam | undefined => {
+    const pool = (meta ?? []).filter((t) => t.id !== avoid?.id);
+    if (!pool.length) return undefined;
+    const w = pool.map((t) => Math.sqrt(t.seen) + 1);
+    let x = Math.random() * w.reduce((a, b) => a + b, 0);
+    for (let i = 0; i < pool.length; i++) if ((x -= w[i]!) <= 0) return pool[i];
+    return pool[0];
+  };
+  const toBuilds = (t: MetaTeam) => t.members.map((m) => makeBuild(m));
   const [botBusy, setBotBusy] = useState(false);
   const [depth, setDepth] = useState(2);
   const [phase, setPhase] = useState<Phase>('setup');
@@ -64,6 +85,8 @@ export default function PlayVsAI() {
   // refs: generation is async, so always avoid the *latest* team and never run two at once
   const myTeamRef = useRef<Build[]>([]);
   myTeamRef.current = myTeam;
+  const myInfoRef = useRef<MetaTeam | undefined>(undefined);
+  myInfoRef.current = teamId === '__gen' || !modeTeams.length ? myInfo : undefined;
   const botRunning = useRef(false);
   const rollBot = async () => {
     if (botRunning.current) return;
@@ -71,7 +94,14 @@ export default function PlayVsAI() {
     setBotBusy(true);
     setErr(undefined);
     try {
-      setBotTeam(await genTeam(myTeamRef.current));
+      const t = pickMeta(myInfoRef.current);
+      if (t) {
+        setBotTeam(toBuilds(t));
+        setBotInfo(t);
+      } else {
+        setBotTeam(await genTeam(myTeamRef.current));
+        setBotInfo(undefined);
+      }
     } catch (e) {
       setErr(String(e instanceof Error ? e.message : e));
     } finally {
@@ -84,7 +114,14 @@ export default function PlayVsAI() {
     setMyBusy(true);
     setErr(undefined);
     try {
-      setMyGen(await genTeam(botTeam));
+      const t = pickMeta(botInfo);
+      if (t) {
+        setMyGen(toBuilds(t));
+        setMyInfo(t);
+      } else {
+        setMyGen(await genTeam(botTeam));
+        setMyInfo(undefined);
+      }
       setTeamId('__gen');
     } catch (e) {
       setErr(String(e instanceof Error ? e.message : e));
@@ -93,15 +130,15 @@ export default function PlayVsAI() {
     }
   };
   useEffect(() => {
-    if (!botTeam && pool.length) rollBot();
+    if (!botTeam && meta !== undefined && (meta.length || pool.length)) rollBot();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pool.length, mode]);
+  }, [pool.length, mode, meta]);
   // your team changed and now shares Pokémon with the AI's: give the AI a different one
   const myKey = myTeam.map((b) => b.species).join('|');
   useEffect(() => {
     if (!botTeam || phase !== 'setup') return;
     const mine = new Set(myTeam.map((b) => b.species));
-    if (botTeam.filter((b) => mine.has(b.species)).length >= 2) rollBot();
+    if (botTeam.filter((b) => mine.has(b.species)).length >= 5) rollBot();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [myKey, botTeam]);
 
@@ -173,6 +210,9 @@ export default function PlayVsAI() {
           rollMine={rollMine}
           myBusy={myBusy}
           hasGen={!!myGen}
+          myInfo={teamId === '__gen' || !modeTeams.length ? myInfo : undefined}
+          botInfo={botInfo}
+          hasMeta={!!meta?.length}
           botTeam={botTeam}
           botBusy={botBusy}
           rollBot={rollBot}
@@ -221,6 +261,25 @@ export default function PlayVsAI() {
   );
 }
 
+/** Where a meta team comes from: rating, how often it was seen, and the public replay. */
+function MetaBadge({ t }: { t: MetaTeam }) {
+  return (
+    <div className="mb-2 flex flex-wrap items-center gap-1.5 text-xs">
+      <span className="chip border-accent/50 text-accent">
+        <Trophy size={12} /> Equipo meta real
+      </span>
+      <span className="chip">Rating {t.rating}</span>
+      <span className="chip">
+        Visto en {t.seen} {t.seen === 1 ? 'partida' : 'partidas'} del top
+      </span>
+      <span className="chip">{t.setsFrom === 'team-sheet' ? 'Sets exactos (hoja abierta)' : 'Sets probables'}</span>
+      <a className="chip hover:text-accent" href={`https://replay.pokemonshowdown.com/${t.replay}`} target="_blank" rel="noreferrer">
+        Ver replay <ExternalLink size={11} />
+      </a>
+    </div>
+  );
+}
+
 function TeamRow({ team, size = 40 }: { team: Build[]; size?: number }) {
   const { names } = useApp();
   return (
@@ -250,6 +309,9 @@ function Setup(p: {
   rollMine: () => void;
   myBusy: boolean;
   hasGen: boolean;
+  myInfo?: MetaTeam;
+  botInfo?: MetaTeam;
+  hasMeta: boolean;
   botTeam?: Build[];
   botBusy: boolean;
   rollBot: () => void;
@@ -272,13 +334,14 @@ function Setup(p: {
                   {t.name}
                 </option>
               ))}
-              {p.hasGen && <option value="__gen">Equipo generado</option>}
+              {p.hasGen && <option value="__gen">{p.myInfo ? 'Equipo meta' : 'Equipo generado'}</option>}
             </select>
           )}
           <button className="btn text-xs" onClick={p.rollMine} disabled={p.myBusy}>
-            {p.myBusy ? <Loader2 size={13} className="animate-spin" /> : <Dices size={13} />} {p.teams.length ? 'Usar uno generado' : 'Arma uno por mí'}
+            {p.myBusy ? <Loader2 size={13} className="animate-spin" /> : <Trophy size={13} />} {p.hasMeta ? (p.myInfo ? 'Otro equipo meta' : 'Usar un equipo meta') : p.teams.length ? 'Usar uno generado' : 'Arma uno por mí'}
           </button>
         </div>
+        {p.myInfo && <MetaBadge t={p.myInfo} />}
         {p.myTeam.length ? (
           <TeamRow team={p.myTeam} />
         ) : (
@@ -294,11 +357,12 @@ function Setup(p: {
             <Bot size={14} /> Equipo de la IA
           </span>
           <button className="btn text-xs" onClick={p.rollBot} disabled={p.botBusy}>
-            {p.botBusy ? <Loader2 size={13} className="animate-spin" /> : <Dices size={13} />} Otro equipo
+            {p.botBusy ? <Loader2 size={13} className="animate-spin" /> : <Dices size={13} />} {p.botInfo ? 'Otro equipo meta' : 'Otro equipo'}
           </button>
-          <span className="text-[11px] text-faint">Armado por el Squad Builder con los Pokémon del meta. Hojas de equipo abiertas, como en Reg M-C.</span>
+          <span className="text-[11px] text-faint">{p.botInfo ? 'Un equipo real de los mejores jugadores de Showdown, actualizado cada semana. Hojas de equipo abiertas, como en Reg M-C.' : 'Armado por el Squad Builder con los Pokémon del meta. Hojas de equipo abiertas, como en Reg M-C.'}</span>
         </div>
-        {p.botTeam ? <TeamRow team={p.botTeam} /> : <p className="text-sm text-muted">Armando un equipo…</p>}
+        {p.botInfo && <MetaBadge t={p.botInfo} />}
+        {p.botTeam ? <TeamRow team={p.botTeam} /> : <p className="text-sm text-muted">Buscando un equipo meta…</p>}
       </div>
       <div className="panel flex flex-wrap items-center gap-3 p-4">
         <span className="panel-title">Dificultad</span>

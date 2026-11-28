@@ -1,0 +1,3018 @@
+{
+ "updatedAt": "2026-11-28T01:29:34.129Z",
+ "source": "Pokémon Showdown public replays (highest rated)",
+ "mode": "singles",
+ "teams": [
+  {
+   "id": "garchomp|gholdengo|hippowdon|metagross|mimikyu|primarina",
+   "mode": "singles",
+   "rating": 1512,
+   "date": "2026-10-19",
+   "replay": "gen9championsbssregmc-2700867580",
+   "seen": 8,
+   "setsFrom": "usage",
+   "members": [
+    {
+     "species": "Hippowdon",
+     "item": "Rocky Helmet",
+     "ability": "Sand Stream",
+     "alignment": "Impish",
+     "moves": [
+      "Earthquake",
+      "Yawn",
+      "Slack Off",
+      "Stealth Rock"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 32,
+      "spa": 0,
+      "spd": 2,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Metagross",
+     "item": "Sitrus Berry",
+     "ability": "Clear Body",
+     "alignment": "Adamant",
+     "moves": [
+      "Bullet Punch",
+      "Earthquake",
+      "Meteor Mash",
+      "Psychic Fangs"
+     ],
+     "sp": {
+      "hp": 30,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 4,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Primarina",
+     "item": "Sitrus Berry",
+     "ability": "Torrent",
+     "alignment": "Modest",
+     "moves": [
+      "Moonblast",
+      "Aqua Jet",
+      "Sparkling Aria",
+      "Encore"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 24,
+      "spa": 0,
+      "spd": 0,
+      "spe": 10
+     }
+    },
+    {
+     "species": "Garchomp",
+     "item": "Choice Scarf",
+     "ability": "Rough Skin",
+     "alignment": "Jolly",
+     "moves": [
+      "Draco Meteor",
+      "Earthquake",
+      "Stealth Rock",
+      "Dragon Tail"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Gholdengo",
+     "item": "Air Balloon",
+     "ability": "Good as Gold",
+     "alignment": "Timid",
+     "moves": [
+      "Shadow Ball",
+      "Recover",
+      "Nasty Plot",
+      "Make It Rain"
+     ],
+     "sp": {
+      "hp": 1,
+      "atk": 0,
+      "def": 1,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Mimikyu",
+     "item": "Life Orb",
+     "ability": "Disguise",
+     "alignment": "Adamant",
+     "moves": [
+      "Play Rough",
+      "Shadow Sneak",
+      "Swords Dance",
+      "Shadow Claw"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    }
+   ]
+  },
+  {
+   "id": "aegislash|garchomp|greninja|metagross|mimikyu|primarina",
+   "mode": "singles",
+   "rating": 1547,
+   "date": "2026-10-19",
+   "replay": "gen9championsbssregmc-2700839338",
+   "seen": 4,
+   "setsFrom": "usage",
+   "members": [
+    {
+     "species": "Primarina",
+     "item": "Sitrus Berry",
+     "ability": "Torrent",
+     "alignment": "Modest",
+     "moves": [
+      "Moonblast",
+      "Aqua Jet",
+      "Sparkling Aria",
+      "Encore"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 24,
+      "spa": 0,
+      "spd": 0,
+      "spe": 10
+     }
+    },
+    {
+     "species": "Metagross",
+     "item": "Sitrus Berry",
+     "ability": "Clear Body",
+     "alignment": "Adamant",
+     "moves": [
+      "Bullet Punch",
+      "Earthquake",
+      "Meteor Mash",
+      "Psychic Fangs"
+     ],
+     "sp": {
+      "hp": 30,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 4,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Mimikyu",
+     "item": "Life Orb",
+     "ability": "Disguise",
+     "alignment": "Adamant",
+     "moves": [
+      "Swords Dance",
+      "Play Rough",
+      "Shadow Sneak",
+      "Shadow Claw"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Garchomp",
+     "item": "Choice Scarf",
+     "ability": "Rough Skin",
+     "alignment": "Jolly",
+     "moves": [
+      "Earthquake",
+      "Fire Blast",
+      "Stealth Rock",
+      "Dragon Tail"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Greninja",
+     "item": "Focus Sash",
+     "ability": "Protean",
+     "alignment": "Modest",
+     "moves": [
+      "Ice Beam",
+      "Dark Pulse",
+      "Sludge Wave",
+      "Water Shuriken"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Aegislash",
+     "item": "Leftovers",
+     "ability": "Stance Change",
+     "alignment": "Brave",
+     "moves": [
+      "Shadow Sneak",
+      "Swords Dance",
+      "Poltergeist",
+      "King's Shield"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 2,
+      "spe": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bellibolt|clefable|ditto|lucario|sableye|starmie",
+   "mode": "singles",
+   "rating": 1512,
+   "date": "2026-10-19",
+   "replay": "gen9championsbssregmc-2700867580",
+   "seen": 4,
+   "setsFrom": "usage",
+   "members": [
+    {
+     "species": "Starmie",
+     "item": "Focus Sash",
+     "ability": "Natural Cure",
+     "alignment": "Timid",
+     "moves": [
+      "Psycho Cut",
+      "Ice Spinner",
+      "Liquidation",
+      "Ice Beam"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Lucario",
+     "item": "Focus Sash",
+     "ability": "Inner Focus",
+     "alignment": "Timid",
+     "moves": [
+      "Final Gambit",
+      "Aura Sphere",
+      "Flash Cannon",
+      "Counter"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Ditto",
+     "item": "Choice Scarf",
+     "ability": "Imposter",
+     "alignment": "Bold",
+     "moves": [
+      "",
+      "Transform"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 32,
+      "spa": 0,
+      "spd": 2,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Sableye",
+     "item": "Light Clay",
+     "ability": "Prankster",
+     "alignment": "Bold",
+     "moves": [
+      "Metal Burst",
+      "Will-O-Wisp",
+      "Light Screen",
+      "Reflect"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 32,
+      "spa": 0,
+      "spd": 0,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Bellibolt",
+     "item": "Red Card",
+     "ability": "Electromorphosis",
+     "alignment": "Bold",
+     "moves": [
+      "Volt Switch",
+      "Slack Off",
+      "Parabolic Charge",
+      "Soak"
+     ],
+     "sp": {
+      "hp": 31,
+      "atk": 0,
+      "def": 9,
+      "spa": 0,
+      "spd": 26,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Clefable",
+     "item": "Life Orb",
+     "ability": "Unaware",
+     "alignment": "Modest",
+     "moves": [
+      "Moonblast",
+      "Moonlight",
+      "Flamethrower",
+      "Thunderbolt"
+     ],
+     "sp": {
+      "hp": 10,
+      "atk": 0,
+      "def": 27,
+      "spa": 25,
+      "spd": 0,
+      "spe": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "aegislash|basculegion|dragonite|hippowdon|lucario|mimikyu",
+   "mode": "singles",
+   "rating": 1540,
+   "date": "2026-10-19",
+   "replay": "gen9championsbssregmc-2700836162",
+   "seen": 2,
+   "setsFrom": "usage",
+   "members": [
+    {
+     "species": "Hippowdon",
+     "item": "Rocky Helmet",
+     "ability": "Sand Stream",
+     "alignment": "Impish",
+     "moves": [
+      "Earthquake",
+      "Yawn",
+      "Slack Off",
+      "Stealth Rock"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 32,
+      "spa": 0,
+      "spd": 2,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Lucario",
+     "item": "Focus Sash",
+     "ability": "Inner Focus",
+     "alignment": "Timid",
+     "moves": [
+      "Flash Cannon",
+      "Final Gambit",
+      "Aura Sphere",
+      "Counter"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Dragonite",
+     "item": "Rocky Helmet",
+     "ability": "Multiscale",
+     "alignment": "Adamant",
+     "moves": [
+      "Earthquake",
+      "Extreme Speed",
+      "Roost",
+      "Dragon Tail"
+     ],
+     "sp": {
+      "hp": 31,
+      "atk": 32,
+      "def": 1,
+      "spa": 0,
+      "spd": 2,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Mimikyu",
+     "item": "Life Orb",
+     "ability": "Disguise",
+     "alignment": "Adamant",
+     "moves": [
+      "Shadow Sneak",
+      "Play Rough",
+      "Swords Dance",
+      "Shadow Claw"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Aegislash",
+     "item": "Leftovers",
+     "ability": "Stance Change",
+     "alignment": "Brave",
+     "moves": [
+      "Shadow Sneak",
+      "Swords Dance",
+      "Poltergeist",
+      "King's Shield"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 2,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Basculegion",
+     "item": "Choice Scarf",
+     "ability": "Adaptability",
+     "alignment": "Jolly",
+     "moves": [
+      "Flip Turn",
+      "Last Respects",
+      "Wave Crash",
+      "Aqua Jet"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    }
+   ]
+  },
+  {
+   "id": "archaludon|indeedee|pelipper|salamence|sneasler|swampert",
+   "mode": "singles",
+   "rating": 1465,
+   "date": "2026-10-22",
+   "replay": "gen9championsbssregmc-2702554735",
+   "seen": 2,
+   "setsFrom": "usage",
+   "members": [
+    {
+     "species": "Archaludon",
+     "item": "Sitrus Berry",
+     "ability": "Stamina",
+     "alignment": "Timid",
+     "moves": [
+      "Stealth Rock",
+      "Electro Shot",
+      "Flash Cannon",
+      "Draco Meteor"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Pelipper",
+     "item": "Damp Rock",
+     "ability": "Drizzle",
+     "alignment": "Quiet",
+     "moves": [
+      "U-turn",
+      "Surf",
+      "Hurricane",
+      "Ice Beam"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 10,
+      "spa": 16,
+      "spd": 8,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Swampert",
+     "item": "Sitrus Berry",
+     "ability": "Torrent",
+     "alignment": "Relaxed",
+     "moves": [
+      "Flip Turn",
+      "Wave Crash",
+      "Stealth Rock",
+      "Yawn"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 28,
+      "spa": 0,
+      "spd": 6,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Sneasler",
+     "item": "Psychic Seed",
+     "ability": "Unburden",
+     "alignment": "Adamant",
+     "moves": [
+      "Close Combat",
+      "Dire Claw",
+      "Swords Dance",
+      "Fake Out"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Indeedee",
+     "item": "Terrain Extender",
+     "ability": "Psychic Surge",
+     "alignment": "Timid",
+     "moves": [
+      "Expanding Force",
+      "Mystical Fire",
+      "Encore",
+      "Dazzling Gleam"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Salamence",
+     "item": "Life Orb",
+     "ability": "Intimidate",
+     "alignment": "Jolly",
+     "moves": [
+      "Fire Blast",
+      "Hydro Pump",
+      "Draco Meteor",
+      "Hurricane"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    }
+   ]
+  },
+  {
+   "id": "archaludon|cinderace|hatterene|sneasler|starmie|zoroarkhisui",
+   "mode": "singles",
+   "rating": 1517,
+   "date": "2026-10-17",
+   "replay": "gen9championsbssregmc-2700046702",
+   "seen": 1,
+   "setsFrom": "usage",
+   "members": [
+    {
+     "species": "Archaludon",
+     "item": "Sitrus Berry",
+     "ability": "Stamina",
+     "alignment": "Timid",
+     "moves": [
+      "Thunderbolt",
+      "Focus Energy",
+      "Flash Cannon",
+      "Draco Meteor"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Zoroark-Hisui",
+     "item": "Focus Sash",
+     "ability": "Illusion",
+     "alignment": "Hasty",
+     "moves": [
+      "Icy Wind",
+      "Focus Blast",
+      "Shadow Ball",
+      "Shadow Sneak"
+     ],
+     "sp": {
+      "hp": 0,
+      "atk": 2,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Starmie",
+     "item": "Focus Sash",
+     "ability": "Natural Cure",
+     "alignment": "Timid",
+     "moves": [
+      "Ice Spinner",
+      "Aqua Jet",
+      "Ice Beam",
+      "Thunderbolt"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Sneasler",
+     "item": "Psychic Seed",
+     "ability": "Unburden",
+     "alignment": "Adamant",
+     "moves": [
+      "Fake Out",
+      "Close Combat",
+      "Dire Claw",
+      "Swords Dance"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Cinderace",
+     "item": "Wide Lens",
+     "ability": "Libero",
+     "alignment": "Adamant",
+     "moves": [
+      "Pyro Ball",
+      "Gunk Shot",
+      "High Jump Kick",
+      "Sucker Punch"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Hatterene",
+     "item": "Sitrus Berry",
+     "ability": "Magic Bounce",
+     "alignment": "Bold",
+     "moves": [
+      "Draining Kiss",
+      "Mystical Fire",
+      "Psychic Noise",
+      "Trick Room"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 32,
+      "spa": 0,
+      "spd": 2,
+      "spe": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "baxcalibur|blastoise|indeedee|ninetalesalola|samurotthisui|tinkaton",
+   "mode": "singles",
+   "rating": 1517,
+   "date": "2026-10-17",
+   "replay": "gen9championsbssregmc-2700046702",
+   "seen": 1,
+   "setsFrom": "usage",
+   "members": [
+    {
+     "species": "Blastoise",
+     "item": "White Herb",
+     "ability": "Torrent",
+     "alignment": "Modest",
+     "moves": [
+      "Shell Smash",
+      "Terrain Pulse",
+      "Ice Beam",
+      "Hydro Pump"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Samurott-Hisui",
+     "item": "Focus Sash",
+     "ability": "Sharpness",
+     "alignment": "Adamant",
+     "moves": [
+      "Ceaseless Edge",
+      "Aqua Jet",
+      "Sacred Sword",
+      "Encore"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Baxcalibur",
+     "item": "Focus Sash",
+     "ability": "Thermal Exchange",
+     "alignment": "Adamant",
+     "moves": [
+      "Ice Shard",
+      "Earthquake",
+      "Glaive Rush",
+      "Icicle Crash"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Ninetales-Alola",
+     "item": "Light Clay",
+     "ability": "Snow Warning",
+     "alignment": "Timid",
+     "moves": [
+      "Aurora Veil",
+      "Freeze-Dry",
+      "Encore",
+      "Moonblast"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Indeedee",
+     "item": "Terrain Extender",
+     "ability": "Psychic Surge",
+     "alignment": "Timid",
+     "moves": [
+      "Encore",
+      "Expanding Force",
+      "Healing Wish",
+      "Mystical Fire"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Tinkaton",
+     "item": "Air Balloon",
+     "ability": "Mold Breaker",
+     "alignment": "Adamant",
+     "moves": [
+      "Gigaton Hammer",
+      "Encore",
+      "Thunder Wave",
+      "Knock Off"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    }
+   ]
+  },
+  {
+   "id": "garchomp|greninja|indeedee|metagross|mimikyu|primarina",
+   "mode": "singles",
+   "rating": 1511,
+   "date": "2026-10-19",
+   "replay": "gen9championsbssregmc-2700850809",
+   "seen": 1,
+   "setsFrom": "usage",
+   "members": [
+    {
+     "species": "Primarina",
+     "item": "Sitrus Berry",
+     "ability": "Torrent",
+     "alignment": "Modest",
+     "moves": [
+      "Sparkling Aria",
+      "Aqua Jet",
+      "Moonblast",
+      "Encore"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 24,
+      "spa": 0,
+      "spd": 0,
+      "spe": 10
+     }
+    },
+    {
+     "species": "Metagross",
+     "item": "Sitrus Berry",
+     "ability": "Clear Body",
+     "alignment": "Adamant",
+     "moves": [
+      "Earthquake",
+      "Ice Punch",
+      "Bullet Punch",
+      "Meteor Mash"
+     ],
+     "sp": {
+      "hp": 30,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 4,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Mimikyu",
+     "item": "Life Orb",
+     "ability": "Disguise",
+     "alignment": "Adamant",
+     "moves": [
+      "Play Rough",
+      "Shadow Sneak",
+      "Swords Dance",
+      "Shadow Claw"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Garchomp",
+     "item": "Choice Scarf",
+     "ability": "Rough Skin",
+     "alignment": "Jolly",
+     "moves": [
+      "Earthquake",
+      "Stealth Rock",
+      "Dragon Tail",
+      "Outrage"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Greninja",
+     "item": "Focus Sash",
+     "ability": "Protean",
+     "alignment": "Modest",
+     "moves": [
+      "Dark Pulse",
+      "Sludge Wave",
+      "Ice Beam",
+      "Water Shuriken"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Indeedee",
+     "item": "Terrain Extender",
+     "ability": "Psychic Surge",
+     "alignment": "Timid",
+     "moves": [
+      "Expanding Force",
+      "Mystical Fire",
+      "Encore",
+      "Dazzling Gleam"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    }
+   ]
+  },
+  {
+   "id": "archaludon|garchomp|greninja|metagross|mimikyu|primarina",
+   "mode": "singles",
+   "rating": 1510,
+   "date": "2026-10-19",
+   "replay": "gen9championsbssregmc-2700906567",
+   "seen": 1,
+   "setsFrom": "usage",
+   "members": [
+    {
+     "species": "Primarina",
+     "item": "Sitrus Berry",
+     "ability": "Torrent",
+     "alignment": "Modest",
+     "moves": [
+      "Moonblast",
+      "Aqua Jet",
+      "Sparkling Aria",
+      "Encore"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 24,
+      "spa": 0,
+      "spd": 0,
+      "spe": 10
+     }
+    },
+    {
+     "species": "Metagross",
+     "item": "Sitrus Berry",
+     "ability": "Clear Body",
+     "alignment": "Adamant",
+     "moves": [
+      "Bullet Punch",
+      "Earthquake",
+      "Meteor Mash",
+      "Psychic Fangs"
+     ],
+     "sp": {
+      "hp": 30,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 4,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Mimikyu",
+     "item": "Life Orb",
+     "ability": "Disguise",
+     "alignment": "Adamant",
+     "moves": [
+      "Wood Hammer",
+      "Play Rough",
+      "Shadow Sneak",
+      "Swords Dance"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Garchomp",
+     "item": "Choice Scarf",
+     "ability": "Rough Skin",
+     "alignment": "Jolly",
+     "moves": [
+      "Earthquake",
+      "Stealth Rock",
+      "Dragon Tail",
+      "Outrage"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Greninja",
+     "item": "Focus Sash",
+     "ability": "Protean",
+     "alignment": "Modest",
+     "moves": [
+      "Counter",
+      "Ice Beam",
+      "Dark Pulse",
+      "Sludge Wave"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Archaludon",
+     "item": "Sitrus Berry",
+     "ability": "Stamina",
+     "alignment": "Timid",
+     "moves": [
+      "Draco Meteor",
+      "Thunderbolt",
+      "Flash Cannon",
+      "Stealth Rock"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    }
+   ]
+  },
+  {
+   "id": "garchomp|greninja|meowscarada|metagross|mimikyu|primarina",
+   "mode": "singles",
+   "rating": 1496,
+   "date": "2026-10-19",
+   "replay": "gen9championsbssregmc-2700844493",
+   "seen": 1,
+   "setsFrom": "usage",
+   "members": [
+    {
+     "species": "Primarina",
+     "item": "Sitrus Berry",
+     "ability": "Torrent",
+     "alignment": "Modest",
+     "moves": [
+      "Calm Mind",
+      "Aqua Jet",
+      "Sparkling Aria",
+      "Moonblast"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 24,
+      "spa": 0,
+      "spd": 0,
+      "spe": 10
+     }
+    },
+    {
+     "species": "Metagross",
+     "item": "Sitrus Berry",
+     "ability": "Clear Body",
+     "alignment": "Adamant",
+     "moves": [
+      "Bullet Punch",
+      "Earthquake",
+      "Meteor Mash",
+      "Psychic Fangs"
+     ],
+     "sp": {
+      "hp": 30,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 4,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Mimikyu",
+     "item": "Life Orb",
+     "ability": "Disguise",
+     "alignment": "Adamant",
+     "moves": [
+      "Play Rough",
+      "Shadow Sneak",
+      "Swords Dance",
+      "Shadow Claw"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Garchomp",
+     "item": "Choice Scarf",
+     "ability": "Rough Skin",
+     "alignment": "Jolly",
+     "moves": [
+      "Earthquake",
+      "Stealth Rock",
+      "Dragon Tail",
+      "Outrage"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Greninja",
+     "item": "Focus Sash",
+     "ability": "Protean",
+     "alignment": "Modest",
+     "moves": [
+      "Dark Pulse",
+      "Sludge Wave",
+      "Ice Beam",
+      "Water Shuriken"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Meowscarada",
+     "item": "Choice Scarf",
+     "ability": "Protean",
+     "alignment": "Jolly",
+     "moves": [
+      "Knock Off",
+      "Flower Trick",
+      "Triple Axel",
+      "U-turn"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    }
+   ]
+  },
+  {
+   "id": "aegislash|baxcalibur|blaziken|ninetalesalola|samurotthisui|venusaur",
+   "mode": "singles",
+   "rating": 1483,
+   "date": "2026-10-15",
+   "replay": "gen9championsbssregmc-2699008326",
+   "seen": 1,
+   "setsFrom": "usage",
+   "members": [
+    {
+     "species": "Samurott-Hisui",
+     "item": "Focus Sash",
+     "ability": "Sharpness",
+     "alignment": "Adamant",
+     "moves": [
+      "Ceaseless Edge",
+      "Encore",
+      "Sacred Sword",
+      "Aqua Jet"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Ninetales-Alola",
+     "item": "Light Clay",
+     "ability": "Snow Warning",
+     "alignment": "Timid",
+     "moves": [
+      "Encore",
+      "Freeze-Dry",
+      "Aurora Veil",
+      "Moonblast"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Baxcalibur",
+     "item": "Focus Sash",
+     "ability": "Thermal Exchange",
+     "alignment": "Adamant",
+     "moves": [
+      "Ice Shard",
+      "Earthquake",
+      "Glaive Rush",
+      "Icicle Crash"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Aegislash",
+     "item": "Leftovers",
+     "ability": "Stance Change",
+     "alignment": "Brave",
+     "moves": [
+      "Shadow Sneak",
+      "Swords Dance",
+      "Poltergeist",
+      "King's Shield"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 2,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Blaziken",
+     "item": "Focus Sash",
+     "ability": "Speed Boost",
+     "alignment": "Adamant",
+     "moves": [
+      "Close Combat",
+      "Flare Blitz",
+      "Detect",
+      "Swords Dance"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Venusaur",
+     "item": "Life Orb",
+     "ability": "Chlorophyll",
+     "alignment": "Modest",
+     "moves": [
+      "Earth Power",
+      "Sludge Wave",
+      "Weather Ball",
+      "Growth"
+     ],
+     "sp": {
+      "hp": 0,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 2,
+      "spe": 32
+     }
+    }
+   ]
+  },
+  {
+   "id": "blastoise|garchomp|lucario|mimikyu|sneasler|sylveon",
+   "mode": "singles",
+   "rating": 1478,
+   "date": "2026-11-15",
+   "replay": "gen9championsbssregmc-2714260166",
+   "seen": 1,
+   "setsFrom": "usage",
+   "members": [
+    {
+     "species": "Mimikyu",
+     "item": "Life Orb",
+     "ability": "Disguise",
+     "alignment": "Adamant",
+     "moves": [
+      "Play Rough",
+      "Shadow Sneak",
+      "Swords Dance",
+      "Shadow Claw"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Sneasler",
+     "item": "Psychic Seed",
+     "ability": "Unburden",
+     "alignment": "Adamant",
+     "moves": [
+      "Dire Claw",
+      "Close Combat",
+      "Swords Dance",
+      "Fake Out"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Sylveon",
+     "item": "Leftovers",
+     "ability": "Pixilate",
+     "alignment": "Modest",
+     "moves": [
+      "Hyper Voice",
+      "Quick Attack",
+      "Mystical Fire",
+      "Yawn"
+     ],
+     "sp": {
+      "hp": 21,
+      "atk": 0,
+      "def": 12,
+      "spa": 30,
+      "spd": 0,
+      "spe": 3
+     }
+    },
+    {
+     "species": "Blastoise",
+     "item": "White Herb",
+     "ability": "Torrent",
+     "alignment": "Modest",
+     "moves": [
+      "Aura Sphere",
+      "Ice Beam",
+      "Shell Smash",
+      "Hydro Pump"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Garchomp",
+     "item": "Choice Scarf",
+     "ability": "Rough Skin",
+     "alignment": "Jolly",
+     "moves": [
+      "Earthquake",
+      "Stealth Rock",
+      "Dragon Tail",
+      "Outrage"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Lucario",
+     "item": "Focus Sash",
+     "ability": "Inner Focus",
+     "alignment": "Timid",
+     "moves": [
+      "Final Gambit",
+      "Aura Sphere",
+      "Flash Cannon",
+      "Counter"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    }
+   ]
+  },
+  {
+   "id": "baxcalibur|kingambit|lucario|mimikyu|rotomwash|volcarona",
+   "mode": "singles",
+   "rating": 1467,
+   "date": "2026-10-19",
+   "replay": "gen9championsbssregmc-2701053369",
+   "seen": 1,
+   "setsFrom": "usage",
+   "members": [
+    {
+     "species": "Baxcalibur",
+     "item": "Focus Sash",
+     "ability": "Thermal Exchange",
+     "alignment": "Adamant",
+     "moves": [
+      "Dragon Dance",
+      "Icicle Spear",
+      "Ice Shard",
+      "Earthquake"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Mimikyu",
+     "item": "Life Orb",
+     "ability": "Disguise",
+     "alignment": "Adamant",
+     "moves": [
+      "Play Rough",
+      "Shadow Sneak",
+      "Swords Dance",
+      "Shadow Claw"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Lucario",
+     "item": "Focus Sash",
+     "ability": "Inner Focus",
+     "alignment": "Timid",
+     "moves": [
+      "Final Gambit",
+      "Aura Sphere",
+      "Flash Cannon",
+      "Counter"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Rotom-Wash",
+     "item": "Sitrus Berry",
+     "ability": "Levitate",
+     "alignment": "Bold",
+     "moves": [
+      "Volt Switch",
+      "Hydro Pump",
+      "Will-O-Wisp",
+      "Pain Split"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 32,
+      "spa": 0,
+      "spd": 2,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Volcarona",
+     "item": "Sitrus Berry",
+     "ability": "Flame Body",
+     "alignment": "Modest",
+     "moves": [
+      "Quiver Dance",
+      "Fiery Dance",
+      "Bug Buzz",
+      "Giga Drain"
+     ],
+     "sp": {
+      "hp": 1,
+      "atk": 0,
+      "def": 1,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Kingambit",
+     "item": "Black Glasses",
+     "ability": "Supreme Overlord",
+     "alignment": "Adamant",
+     "moves": [
+      "Sucker Punch",
+      "Kowtow Cleave",
+      "Iron Head",
+      "Swords Dance"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 32,
+      "def": 2,
+      "spa": 0,
+      "spd": 0,
+      "spe": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "garchomp|gholdengo|golisopod|gyarados|hippowdon|sylveon",
+   "mode": "singles",
+   "rating": 1465,
+   "date": "2026-10-22",
+   "replay": "gen9championsbssregmc-2702554735",
+   "seen": 1,
+   "setsFrom": "usage",
+   "members": [
+    {
+     "species": "Golisopod",
+     "item": "Leftovers",
+     "ability": "Emergency Exit",
+     "alignment": "Adamant",
+     "moves": [
+      "Swords Dance",
+      "Sucker Punch",
+      "First Impression",
+      "Aqua Jet"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 21,
+      "def": 0,
+      "spa": 0,
+      "spd": 13,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Gholdengo",
+     "item": "Air Balloon",
+     "ability": "Good as Gold",
+     "alignment": "Timid",
+     "moves": [
+      "Shadow Ball",
+      "Make It Rain",
+      "Nasty Plot",
+      "Recover"
+     ],
+     "sp": {
+      "hp": 1,
+      "atk": 0,
+      "def": 1,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Garchomp",
+     "item": "Choice Scarf",
+     "ability": "Rough Skin",
+     "alignment": "Jolly",
+     "moves": [
+      "Earthquake",
+      "Stealth Rock",
+      "Dragon Tail",
+      "Outrage"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Gyarados",
+     "item": "Rocky Helmet",
+     "ability": "Intimidate",
+     "alignment": "Jolly",
+     "moves": [
+      "Power Whip",
+      "Earthquake",
+      "Avalanche",
+      "Taunt"
+     ],
+     "sp": {
+      "hp": 1,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 5,
+      "spe": 28
+     }
+    },
+    {
+     "species": "Hippowdon",
+     "item": "Rocky Helmet",
+     "ability": "Sand Stream",
+     "alignment": "Impish",
+     "moves": [
+      "Earthquake",
+      "Yawn",
+      "Slack Off",
+      "Stealth Rock"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 32,
+      "spa": 0,
+      "spd": 2,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Sylveon",
+     "item": "Leftovers",
+     "ability": "Pixilate",
+     "alignment": "Modest",
+     "moves": [
+      "Wish",
+      "Hyper Voice",
+      "Yawn",
+      "Protect"
+     ],
+     "sp": {
+      "hp": 21,
+      "atk": 0,
+      "def": 12,
+      "spa": 30,
+      "spd": 0,
+      "spe": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "archaludon|cinderace|garchomp|golisopod|pelipper|swampert",
+   "mode": "singles",
+   "rating": 1460,
+   "date": "2026-09-27",
+   "replay": "gen9championsbssregmc-2688548425",
+   "seen": 1,
+   "setsFrom": "usage",
+   "members": [
+    {
+     "species": "Golisopod",
+     "item": "Leftovers",
+     "ability": "Emergency Exit",
+     "alignment": "Adamant",
+     "moves": [
+      "Leech Life",
+      "Drill Run",
+      "Sucker Punch",
+      "First Impression"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 21,
+      "def": 0,
+      "spa": 0,
+      "spd": 13,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Pelipper",
+     "item": "Damp Rock",
+     "ability": "Drizzle",
+     "alignment": "Quiet",
+     "moves": [
+      "Hurricane",
+      "U-turn",
+      "Ice Beam",
+      "Surf"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 10,
+      "spa": 16,
+      "spd": 8,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Swampert",
+     "item": "Sitrus Berry",
+     "ability": "Torrent",
+     "alignment": "Relaxed",
+     "moves": [
+      "Stealth Rock",
+      "Flip Turn",
+      "Yawn",
+      "Earthquake"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 28,
+      "spa": 0,
+      "spd": 6,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Archaludon",
+     "item": "Sitrus Berry",
+     "ability": "Stamina",
+     "alignment": "Timid",
+     "moves": [
+      "Flash Cannon",
+      "Electro Shot",
+      "Draco Meteor",
+      "Thunderbolt"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Cinderace",
+     "item": "Wide Lens",
+     "ability": "Libero",
+     "alignment": "Adamant",
+     "moves": [
+      "Pyro Ball",
+      "Gunk Shot",
+      "High Jump Kick",
+      "Sucker Punch"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Garchomp",
+     "item": "Choice Scarf",
+     "ability": "Rough Skin",
+     "alignment": "Jolly",
+     "moves": [
+      "Earthquake",
+      "Stealth Rock",
+      "Dragon Tail",
+      "Outrage"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    }
+   ]
+  },
+  {
+   "id": "aegislash|baxcalibur|cinderace|ninetalesalola|samurotthisui|venusaur",
+   "mode": "singles",
+   "rating": 1460,
+   "date": "2026-09-27",
+   "replay": "gen9championsbssregmc-2688548425",
+   "seen": 1,
+   "setsFrom": "usage",
+   "members": [
+    {
+     "species": "Samurott-Hisui",
+     "item": "Focus Sash",
+     "ability": "Sharpness",
+     "alignment": "Adamant",
+     "moves": [
+      "Ceaseless Edge",
+      "Sacred Sword",
+      "Aqua Jet",
+      "Encore"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Aegislash",
+     "item": "Leftovers",
+     "ability": "Stance Change",
+     "alignment": "Brave",
+     "moves": [
+      "Shadow Sneak",
+      "Swords Dance",
+      "Poltergeist",
+      "King's Shield"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 2,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Ninetales-Alola",
+     "item": "Light Clay",
+     "ability": "Snow Warning",
+     "alignment": "Timid",
+     "moves": [
+      "Aurora Veil",
+      "Freeze-Dry",
+      "Encore",
+      "Moonblast"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Baxcalibur",
+     "item": "Focus Sash",
+     "ability": "Thermal Exchange",
+     "alignment": "Adamant",
+     "moves": [
+      "Ice Shard",
+      "Earthquake",
+      "Glaive Rush",
+      "Icicle Crash"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Venusaur",
+     "item": "Life Orb",
+     "ability": "Chlorophyll",
+     "alignment": "Modest",
+     "moves": [
+      "Sludge Wave",
+      "Weather Ball",
+      "Earth Power",
+      "Growth"
+     ],
+     "sp": {
+      "hp": 0,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 2,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Cinderace",
+     "item": "Wide Lens",
+     "ability": "Libero",
+     "alignment": "Adamant",
+     "moves": [
+      "High Jump Kick",
+      "Pyro Ball",
+      "Gunk Shot",
+      "Sucker Punch"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    }
+   ]
+  },
+  {
+   "id": "empoleon|lucario|meowscarada|mimikyu|rotomheat|salamence",
+   "mode": "singles",
+   "rating": 1458,
+   "date": "2026-10-19",
+   "replay": "gen9championsbssregmc-2700933384",
+   "seen": 1,
+   "setsFrom": "usage",
+   "members": [
+    {
+     "species": "Salamence",
+     "item": "Life Orb",
+     "ability": "Intimidate",
+     "alignment": "Jolly",
+     "moves": [
+      "Fire Blast",
+      "Hydro Pump",
+      "Draco Meteor",
+      "Hurricane"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Mimikyu",
+     "item": "Life Orb",
+     "ability": "Disguise",
+     "alignment": "Adamant",
+     "moves": [
+      "Swords Dance",
+      "Shadow Claw",
+      "Shadow Sneak",
+      "Play Rough"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Lucario",
+     "item": "Focus Sash",
+     "ability": "Inner Focus",
+     "alignment": "Timid",
+     "moves": [
+      "Dark Pulse",
+      "Vacuum Wave",
+      "Final Gambit",
+      "Aura Sphere"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Empoleon",
+     "item": "Leftovers",
+     "ability": "Competitive",
+     "alignment": "Modest",
+     "moves": [
+      "Yawn",
+      "Ice Beam",
+      "Flip Turn",
+      "Stealth Rock"
+     ],
+     "sp": {
+      "hp": 22,
+      "atk": 0,
+      "def": 22,
+      "spa": 0,
+      "spd": 22,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Rotom-Heat",
+     "item": "Leftovers",
+     "ability": "Levitate",
+     "alignment": "Timid",
+     "moves": [
+      "Overheat",
+      "Volt Switch",
+      "Will-O-Wisp",
+      "Pain Split"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Meowscarada",
+     "item": "Choice Scarf",
+     "ability": "Protean",
+     "alignment": "Jolly",
+     "moves": [
+      "Knock Off",
+      "U-turn",
+      "Flower Trick",
+      "Triple Axel"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    }
+   ]
+  },
+  {
+   "id": "blastoise|corviknight|floetteeternal|garchomp|indeedee|toxapex",
+   "mode": "singles",
+   "rating": 1457,
+   "date": "2026-10-18",
+   "replay": "gen9championsbssregmc-2700508362",
+   "seen": 1,
+   "setsFrom": "usage",
+   "members": [
+    {
+     "species": "Floette-Eternal",
+     "item": "Choice Scarf",
+     "ability": "Flower Veil",
+     "alignment": "Timid",
+     "moves": [
+      "Moonblast",
+      "Light of Ruin",
+      "Trick",
+      "Psychic"
+     ],
+     "sp": {
+      "hp": 4,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 30
+     }
+    },
+    {
+     "species": "Garchomp",
+     "item": "Choice Scarf",
+     "ability": "Rough Skin",
+     "alignment": "Jolly",
+     "moves": [
+      "Earthquake",
+      "Stealth Rock",
+      "Dragon Tail",
+      "Outrage"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Toxapex",
+     "item": "Leftovers",
+     "ability": "Regenerator",
+     "alignment": "Bold",
+     "moves": [
+      "Recover",
+      "Toxic",
+      "Haze",
+      "Infestation"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 10,
+      "spa": 0,
+      "spd": 24,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Corviknight",
+     "item": "Rocky Helmet",
+     "ability": "Pressure",
+     "alignment": "Impish",
+     "moves": [
+      "Roost",
+      "U-turn",
+      "Iron Defense",
+      "Body Press"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 32,
+      "spa": 0,
+      "spd": 2,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Indeedee",
+     "item": "Terrain Extender",
+     "ability": "Psychic Surge",
+     "alignment": "Timid",
+     "moves": [
+      "Expanding Force",
+      "Mystical Fire",
+      "Encore",
+      "Dazzling Gleam"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Blastoise",
+     "item": "White Herb",
+     "ability": "Torrent",
+     "alignment": "Modest",
+     "moves": [
+      "Ice Beam",
+      "Shell Smash",
+      "Hydro Pump",
+      "Dark Pulse"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    }
+   ]
+  },
+  {
+   "id": "ditto|floetteeternal|garchomp|gholdengo|hippowdon|toxapex",
+   "mode": "singles",
+   "rating": 1455,
+   "date": "2026-10-19",
+   "replay": "gen9championsbssregmc-2700758636",
+   "seen": 1,
+   "setsFrom": "usage",
+   "members": [
+    {
+     "species": "Floette-Eternal",
+     "item": "Choice Scarf",
+     "ability": "Flower Veil",
+     "alignment": "Timid",
+     "moves": [
+      "Light of Ruin",
+      "Trick",
+      "Moonblast",
+      "Psychic"
+     ],
+     "sp": {
+      "hp": 4,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 30
+     }
+    },
+    {
+     "species": "Garchomp",
+     "item": "Choice Scarf",
+     "ability": "Rough Skin",
+     "alignment": "Jolly",
+     "moves": [
+      "Dragon Pulse",
+      "Power Gem",
+      "Earthquake",
+      "Stealth Rock"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Hippowdon",
+     "item": "Rocky Helmet",
+     "ability": "Sand Stream",
+     "alignment": "Impish",
+     "moves": [
+      "Earthquake",
+      "Yawn",
+      "Slack Off",
+      "Stealth Rock"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 32,
+      "spa": 0,
+      "spd": 2,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Toxapex",
+     "item": "Leftovers",
+     "ability": "Regenerator",
+     "alignment": "Bold",
+     "moves": [
+      "Toxic",
+      "Recover",
+      "Haze",
+      "Infestation"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 10,
+      "spa": 0,
+      "spd": 24,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Ditto",
+     "item": "Choice Scarf",
+     "ability": "Imposter",
+     "alignment": "Bold",
+     "moves": [
+      "Ice Fang",
+      "Slack Off",
+      "Last Respects",
+      ""
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 32,
+      "spa": 0,
+      "spd": 2,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Gholdengo",
+     "item": "Air Balloon",
+     "ability": "Good as Gold",
+     "alignment": "Timid",
+     "moves": [
+      "Shadow Ball",
+      "Make It Rain",
+      "Nasty Plot",
+      "Recover"
+     ],
+     "sp": {
+      "hp": 1,
+      "atk": 0,
+      "def": 1,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    }
+   ]
+  },
+  {
+   "id": "archaludon|blaziken|salamence|sneasler|starmie|zoroarkhisui",
+   "mode": "singles",
+   "rating": 1454,
+   "date": "2026-10-19",
+   "replay": "gen9championsbssregmc-2701040983",
+   "seen": 1,
+   "setsFrom": "usage",
+   "members": [
+    {
+     "species": "Archaludon",
+     "item": "Sitrus Berry",
+     "ability": "Stamina",
+     "alignment": "Timid",
+     "moves": [
+      "Draco Meteor",
+      "Thunderbolt",
+      "Flash Cannon",
+      "Stealth Rock"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Starmie",
+     "item": "Focus Sash",
+     "ability": "Natural Cure",
+     "alignment": "Timid",
+     "moves": [
+      "Psycho Cut",
+      "Liquidation",
+      "Ice Beam",
+      "Thunderbolt"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Zoroark-Hisui",
+     "item": "Focus Sash",
+     "ability": "Illusion",
+     "alignment": "Hasty",
+     "moves": [
+      "Icy Wind",
+      "Focus Blast",
+      "Shadow Ball",
+      "Shadow Sneak"
+     ],
+     "sp": {
+      "hp": 0,
+      "atk": 2,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Sneasler",
+     "item": "Psychic Seed",
+     "ability": "Unburden",
+     "alignment": "Adamant",
+     "moves": [
+      "Close Combat",
+      "Dire Claw",
+      "Swords Dance",
+      "Fake Out"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Salamence",
+     "item": "Life Orb",
+     "ability": "Intimidate",
+     "alignment": "Jolly",
+     "moves": [
+      "Fire Blast",
+      "Hydro Pump",
+      "Draco Meteor",
+      "Hurricane"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Blaziken",
+     "item": "Focus Sash",
+     "ability": "Speed Boost",
+     "alignment": "Adamant",
+     "moves": [
+      "Close Combat",
+      "Flare Blitz",
+      "Detect",
+      "Swords Dance"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    }
+   ]
+  },
+  {
+   "id": "garchomp|lopunny|metagross|mimikyu|primarina|rotomheat",
+   "mode": "singles",
+   "rating": 1453,
+   "date": "2026-11-26",
+   "replay": "gen9championsbssregmc-2719627188",
+   "seen": 1,
+   "setsFrom": "usage",
+   "members": [
+    {
+     "species": "Lopunny",
+     "item": "Sitrus Berry",
+     "ability": "Limber",
+     "alignment": "Jolly",
+     "moves": [
+      "Baton Pass",
+      "Cotton Guard",
+      "Substitute",
+      "Cosmic Power"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 1,
+      "spa": 0,
+      "spd": 1,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Garchomp",
+     "item": "Choice Scarf",
+     "ability": "Rough Skin",
+     "alignment": "Jolly",
+     "moves": [
+      "Earthquake",
+      "Stealth Rock",
+      "Dragon Tail",
+      "Outrage"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Primarina",
+     "item": "Sitrus Berry",
+     "ability": "Torrent",
+     "alignment": "Modest",
+     "moves": [
+      "Calm Mind",
+      "Sparkling Aria",
+      "Moonblast",
+      "Aqua Jet"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 24,
+      "spa": 0,
+      "spd": 0,
+      "spe": 10
+     }
+    },
+    {
+     "species": "Metagross",
+     "item": "Sitrus Berry",
+     "ability": "Clear Body",
+     "alignment": "Adamant",
+     "moves": [
+      "Psychic Fangs",
+      "Iron Defense",
+      "Body Press",
+      "Bullet Punch"
+     ],
+     "sp": {
+      "hp": 30,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 4,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Mimikyu",
+     "item": "Life Orb",
+     "ability": "Disguise",
+     "alignment": "Adamant",
+     "moves": [
+      "Swords Dance",
+      "Shadow Claw",
+      "Play Rough",
+      "Shadow Sneak"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Rotom-Heat",
+     "item": "Leftovers",
+     "ability": "Levitate",
+     "alignment": "Timid",
+     "moves": [
+      "Overheat",
+      "Volt Switch",
+      "Will-O-Wisp",
+      "Pain Split"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    }
+   ]
+  },
+  {
+   "id": "corviknight|garchomp|lopunny|slowbro|tyranitar|venusaur",
+   "mode": "singles",
+   "rating": 1453,
+   "date": "2026-11-26",
+   "replay": "gen9championsbssregmc-2719627188",
+   "seen": 1,
+   "setsFrom": "usage",
+   "members": [
+    {
+     "species": "Venusaur",
+     "item": "Life Orb",
+     "ability": "Chlorophyll",
+     "alignment": "Modest",
+     "moves": [
+      "Toxic",
+      "Giga Drain",
+      "Sludge Wave",
+      "Weather Ball"
+     ],
+     "sp": {
+      "hp": 0,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 2,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Corviknight",
+     "item": "Rocky Helmet",
+     "ability": "Pressure",
+     "alignment": "Impish",
+     "moves": [
+      "U-turn",
+      "Iron Defense",
+      "Roost",
+      "Body Press"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 32,
+      "spa": 0,
+      "spd": 2,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Tyranitar",
+     "item": "Smooth Rock",
+     "ability": "Sand Stream",
+     "alignment": "Jolly",
+     "moves": [
+      "Stealth Rock",
+      "Rock Tomb",
+      "Knock Off",
+      "Stone Edge"
+     ],
+     "sp": {
+      "hp": 20,
+      "atk": 0,
+      "def": 14,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Garchomp",
+     "item": "Choice Scarf",
+     "ability": "Rough Skin",
+     "alignment": "Jolly",
+     "moves": [
+      "Earthquake",
+      "Stealth Rock",
+      "Dragon Tail",
+      "Outrage"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Slowbro",
+     "item": "nothing",
+     "ability": "Regenerator",
+     "alignment": "Bold",
+     "moves": [
+      "Scald",
+      "Slack Off",
+      "Ice Beam",
+      "Foul Play"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 32,
+      "spa": 2,
+      "spd": 0,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Lopunny",
+     "item": "Sitrus Berry",
+     "ability": "Limber",
+     "alignment": "Jolly",
+     "moves": [
+      "Baton Pass",
+      "Cotton Guard",
+      "Substitute",
+      "Cosmic Power"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 1,
+      "spa": 0,
+      "spd": 1,
+      "spe": 32
+     }
+    }
+   ]
+  },
+  {
+   "id": "bellibolt|corviknight|floetteeternal|garchomp|samurotthisui|starmie",
+   "mode": "singles",
+   "rating": 1453,
+   "date": "2026-10-19",
+   "replay": "gen9championsbssregmc-2700822774",
+   "seen": 1,
+   "setsFrom": "usage",
+   "members": [
+    {
+     "species": "Samurott-Hisui",
+     "item": "Focus Sash",
+     "ability": "Sharpness",
+     "alignment": "Adamant",
+     "moves": [
+      "Ceaseless Edge",
+      "Sacred Sword",
+      "Encore",
+      "Aqua Jet"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Floette-Eternal",
+     "item": "Choice Scarf",
+     "ability": "Flower Veil",
+     "alignment": "Timid",
+     "moves": [
+      "Light of Ruin",
+      "Trick",
+      "Moonblast",
+      "Psychic"
+     ],
+     "sp": {
+      "hp": 4,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 30
+     }
+    },
+    {
+     "species": "Corviknight",
+     "item": "Rocky Helmet",
+     "ability": "Pressure",
+     "alignment": "Impish",
+     "moves": [
+      "Roost",
+      "U-turn",
+      "Iron Defense",
+      "Body Press"
+     ],
+     "sp": {
+      "hp": 32,
+      "atk": 0,
+      "def": 32,
+      "spa": 0,
+      "spd": 2,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Bellibolt",
+     "item": "Red Card",
+     "ability": "Electromorphosis",
+     "alignment": "Bold",
+     "moves": [
+      "Soak",
+      "Parabolic Charge",
+      "Slack Off",
+      "Volt Switch"
+     ],
+     "sp": {
+      "hp": 31,
+      "atk": 0,
+      "def": 9,
+      "spa": 0,
+      "spd": 26,
+      "spe": 0
+     }
+    },
+    {
+     "species": "Starmie",
+     "item": "Focus Sash",
+     "ability": "Natural Cure",
+     "alignment": "Timid",
+     "moves": [
+      "Flip Turn",
+      "Ice Beam",
+      "Thunderbolt",
+      "Surf"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     }
+    },
+    {
+     "species": "Garchomp",
+     "item": "Choice Scarf",
+     "ability": "Rough Skin",
+     "alignment": "Jolly",
+     "moves": [
+      "Earthquake",
+      "Stealth Rock",
+      "Dragon Tail",
+      "Outrage"
+     ],
+     "sp": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     }
+    }
+   ]
+  }
+ ]
+}

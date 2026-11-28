@@ -57,7 +57,8 @@ export class Updater {
   run(trigger: 'auto' | 'manual'): boolean {
     if (this.status.running) return false;
     this.status = { ...this.status, running: true, lastStart: new Date().toISOString(), lastTrigger: trigger, log: [] };
-    const child = spawn('npx', ['tsx', 'scripts/ingest-smogon.ts'], { cwd: this.root, shell: process.platform === 'win32' });
+    // usage stats first (the team sets use their spreads), then the meta teams
+    const child = spawn('npx tsx scripts/ingest-smogon.ts && npx tsx scripts/ingest-teams.ts', { cwd: this.root, shell: true });
     const push = (b: Buffer) => {
       for (const line of b.toString().split(/\r?\n/)) if (line.trim()) this.status.log = [...this.status.log, line].slice(-40);
     };

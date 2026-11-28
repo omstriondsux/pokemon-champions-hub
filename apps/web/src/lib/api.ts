@@ -8,6 +8,21 @@ export const STATIC = import.meta.env.VITE_STATIC === '1';
 
 type Col = 'pokemon' | 'teams' | 'battles';
 const COLS: Col[] = ['pokemon', 'teams', 'battles'];
+/** Real teams from the highest-rated Showdown replays (scripts/ingest-teams.ts). */
+export interface MetaTeam {
+  id: string;
+  mode: 'singles' | 'doubles';
+  rating: number;
+  date: string;
+  replay: string;
+  seen: number;
+  setsFrom: 'team-sheet' | 'usage';
+  members: { species: string; item?: string; ability: string; alignment: string; moves: string[]; sp: { hp: number; atk: number; def: number; spa: number; spd: number; spe: number } }[];
+}
+export interface MetaTeamsFile {
+  updatedAt?: string;
+  teams: MetaTeam[];
+}
 type MetaIndex = { month?: string; updatedAt?: string; snapshots: { file: string; mode: string; ratingCutoff: number; month: string; battles: number; regulation: string }[] };
 
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
@@ -32,6 +47,7 @@ const server = {
   metaStatus: () => req<unknown>('/api/meta/status'),
   refreshMeta: () => req<{ started: boolean }>('/api/meta/refresh', { method: 'POST' }),
   i18n: (lang: string) => req<Record<string, Record<string, string>>>(`/api/i18n/${lang}`),
+  metaTeams: (mode: 'singles' | 'doubles') => req<MetaTeamsFile>(`/api/meta/teams?mode=${mode}`),
   exportAll: () => req<unknown>('/api/export'),
   importAll: (data: unknown, mode: 'merge' | 'replace') => req<{ imported: Record<string, number> }>(`/api/import?mode=${mode}`, { method: 'POST', body: JSON.stringify(data) }),
 };
@@ -42,6 +58,7 @@ const regFiles = import.meta.glob('../../../../data/regulations/*.json', { impor
 const i18nFiles = import.meta.glob('../../../../data/i18n/*.json', { import: 'default' });
 const snapFiles = import.meta.glob('../../../../data/snapshots/smogon/*/*.json', { import: 'default' });
 const indexFile = import.meta.glob('../../../../data/snapshots/smogon/index.json', { import: 'default' });
+const teamFiles = import.meta.glob('../../../../data/teams/*.json', { import: 'default' });
 const relKey = (prefix: string, rel: string) => `../../../../data/${prefix}${rel}`;
 
 const LS = 'pch.db.';
@@ -97,6 +114,7 @@ const browser: typeof server = {
     return { running: false, log: [], indexUpdatedAt: idx.updatedAt, autoUpdateDays: 7, static: true };
   },
   refreshMeta: async () => ({ started: false }),
+  metaTeams: async (mode) => (teamFiles[relKey('teams/', `${mode}.json`)] ? load<MetaTeamsFile>(teamFiles, relKey('teams/', `${mode}.json`)) : { teams: [] }),
   i18n: async (lang: string) => (i18nFiles[relKey('i18n/', `${lang}.json`)] ? load(i18nFiles, relKey('i18n/', `${lang}.json`)) : {}),
   exportAll: async () => ({
     format: 'pch-export',

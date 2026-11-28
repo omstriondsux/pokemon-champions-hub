@@ -31,15 +31,17 @@ jobs:
 
       - name: Actualizar datos de Smogon
         if: github.event_name != 'push'
-        run: npm run ingest:smogon -- --months 2 || echo "La descarga falló; se publican los datos anteriores."
+        run: |
+          npm run ingest:smogon -- --months 2 || echo "La descarga falló; se publican los datos anteriores."
+          npm run ingest:teams || echo "Los equipos meta no se actualizaron; se publican los anteriores."
       - name: Guardar datos nuevos en el repo
         if: github.event_name != 'push'
         run: |
-          if [ -n "$(git status --porcelain data/snapshots)" ]; then
+          if [ -n "$(git status --porcelain data/snapshots data/teams)" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add data/snapshots
-            git commit -m "Datos de Smogon actualizados"
+            git add data/snapshots data/teams
+            git commit -m "Datos de Smogon y equipos meta actualizados"
             git push
           fi
 

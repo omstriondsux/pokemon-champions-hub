@@ -33,6 +33,7 @@ $env:VITE_STATIC='1'; $env:VITE_BASE='/pokemon-champions-hub/'; npm run build -w
 ## Novedades
 
 - **Jugar contra la IA**: combate completo con el motor oficial de Pokémon Showdown (formato Champions Reg M-C, dobles o individuales). La IA simula cada una de sus jugadas contra tus respuestas probables, resuelve la tabla con teoría de juegos (*regret matching*) y mezcla sus jugadas en proporciones, así que no se le puede leer. No ve tu jugada ni tus Stat Points reales. Al terminar, repaso turno a turno: qué jugó la IA (y con qué probabilidad) y si había una jugada mejor para ti. Tres dificultades.
+- **Equipos meta reales**: la IA juega con equipos completos de los mejores jugadores de Showdown (Reg M-C, rating ~1.550–1.800). En dobles salen de las hojas de equipo abiertas de las partidas Bo3: Pokémon, objeto, habilidad, movimientos y naturaleza exactos (los Stat Points, que no se muestran, se completan con los más usados). En individuales, la composición es real y los sets son los más probables. Se actualizan solos cada semana (`npm run ingest:teams`). Tú también puedes jugar con uno.
 - **Analizar partidas**: escribe tu usuario de Showdown (o pega un enlace de replay) y la app te marca la curva de ventaja, los turnos donde se te fue la partida, ataques contra Protección, dobles objetivos y KOs que tenías y no hiciste (calculados con el motor de daño).
 
 Todo corre en tu dispositivo: no hay servidor ni coste.
