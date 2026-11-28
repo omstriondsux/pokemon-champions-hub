@@ -1,11 +1,12 @@
-import { useEffect, useState, type ComponentType } from 'react';
-import { Activity, BookOpen, FlaskConical, Calculator, Gauge, History, LayoutDashboard, MessageSquare, Settings as SettingsIcon, Sparkles, Swords, Users, Wrench, Boxes, Moon, Sun, Menu, Bot, LineChart } from 'lucide-react';
+import { useEffect, useMemo, useState, type ComponentType } from 'react';
+import { Activity, Calculator, History, LayoutDashboard, Settings as SettingsIcon, Swords, Users, Moon, Sun, Menu, Bot } from 'lucide-react';
 import { useApp } from './lib/app';
 import { STATIC } from './lib/api';
 import type { UIKey } from './lib/i18n';
 import type { Mode } from './lib/types';
 import { MasterBall, MASTER_BALL_FAVICON } from './components/MasterBall';
 import { Segmented, Sprite } from './components/ui';
+import { TabHub, type HubTab } from './components/TabHub';
 import { resolveTeam } from './lib/pokemon';
 import Dashboard from './pages/Dashboard';
 import BattleAdvisor from './pages/BattleAdvisor';
@@ -37,43 +38,70 @@ interface Group {
   routes: Route[];
 }
 
+/** Related screens live under one menu entry as tabs, so there is one place for each job. */
+function TeamsHub() {
+  const { settings } = useApp();
+  const tabs = useMemo<HubTab[]>(
+    () => [
+      { id: 'teams', label: 'Equipos', hint: 'Tus equipos de 6', page: Teams },
+      { id: 'auto', label: 'Armar automático', hint: 'Squad Builder: arma equipos por ti', page: SquadBuilder },
+      { id: 'optimize', label: 'Mejorar una build', hint: 'Build Optimizer', page: BuildOptimizer },
+      { id: 'builds', label: 'Pokémon y builds', hint: 'Todas tus builds guardadas', page: MyPokemon },
+      { id: 'analysis', label: 'Análisis', hint: STATIC ? 'Debilidades de tu equipo' : 'Debilidades de tu equipo y chat con IA', page: Coach },
+      ...(settings.ownAll ? [] : [{ id: 'recruit', label: 'Reclutar', hint: 'Qué Pokémon conseguir', page: Recruitment }]),
+    ],
+    [settings.ownAll],
+  );
+  return <TabHub base="teams" tabs={tabs} />;
+}
+const GAMES_TABS: HubTab[] = [
+  { id: 'history', label: 'Mi historial', hint: 'Combates que apuntaste', page: BattleHistory },
+  { id: 'replays', label: 'Replays de Showdown', hint: 'Analiza tus partidas de Showdown', page: ReplayAnalyzer },
+];
+const TOOLS_TABS: HubTab[] = [
+  { id: 'calc', label: 'Daño', hint: 'Calculadora de daño y umbrales de SP', page: DamageCalc },
+  { id: 'speed', label: 'Velocidad', hint: 'Speed tiers del meta', page: SpeedTiers },
+  { id: 'turn', label: 'Simular un turno', hint: 'Analiza un turno concreto', page: Simulator },
+];
+const GamesHub = () => <TabHub base="games" tabs={GAMES_TABS} />;
+const ToolsHub = () => <TabHub base="tools" tabs={TOOLS_TABS} />;
+
+/** Old addresses (and in-app links) → the menu entry and tab where that screen lives now. */
+const ALIASES: Record<string, [string, string]> = {
+  pokemon: ['teams', 'builds'],
+  squad: ['teams', 'auto'],
+  optimizer: ['teams', 'optimize'],
+  coach: ['teams', 'analysis'],
+  recruit: ['teams', 'recruit'],
+  history: ['games', 'history'],
+  replays: ['games', 'replays'],
+  calc: ['tools', 'calc'],
+  speed: ['tools', 'speed'],
+  simulator: ['tools', 'turn'],
+};
+
 /** Grouped by what the user wants to do, in the order they usually do it. */
 export const GROUPS: Group[] = [
   {
     title: 'Inicio',
-    routes: [{ id: 'dashboard', key: 'nav.dashboard', icon: LayoutDashboard, page: Dashboard, hint: 'Resumen y primeros pasos' }],
+    routes: [{ id: 'dashboard', key: 'nav.dashboard', icon: LayoutDashboard, page: Dashboard, hint: 'Resumen y accesos rápidos' }],
   },
   {
     title: 'Jugar',
     routes: [
-      { id: 'advisor', key: 'nav.advisor', icon: Swords, page: BattleAdvisor, hint: 'Qué sacar contra este rival' },
+      { id: 'advisor', key: 'nav.advisor', icon: Swords, page: BattleAdvisor, hint: 'Qué sacar contra un rival' },
       { id: 'play', key: 'nav.play', icon: Bot, page: PlayVsAI, hint: 'Combate de práctica con IA' },
-      { id: 'replays', key: 'nav.replays', icon: LineChart, page: ReplayAnalyzer, hint: 'Repasa tus partidas de Showdown' },
-      { id: 'history', key: 'nav.history', icon: History, page: BattleHistory, hint: 'Apunta tus combates' },
+      { id: 'games', key: 'nav.games', icon: History, page: GamesHub, hint: 'Historial y replays de Showdown' },
     ],
   },
   {
-    title: 'Mi colección',
-    routes: [
-      { id: 'pokemon', key: 'nav.mypokemon', icon: Boxes, page: MyPokemon, hint: 'Tus Pokémon y sus builds' },
-      { id: 'teams', key: 'nav.teams', icon: Users, page: Teams, hint: 'Equipos de 6 para buscar partida' },
-    ],
+    title: 'Preparar',
+    routes: [{ id: 'teams', key: 'nav.teams', icon: Users, page: TeamsHub, hint: 'Equipos, builds y análisis' }],
   },
   {
-    title: 'Mejorar',
+    title: 'Consultar',
     routes: [
-      { id: 'coach', key: 'nav.coach', icon: MessageSquare, page: Coach, hint: STATIC ? 'Debilidades de tu equipo' : 'Análisis y chat con IA' },
-      { id: 'squad', key: 'nav.squad', icon: Sparkles, page: SquadBuilder, hint: 'Arma equipos automáticamente' },
-      { id: 'optimizer', key: 'nav.optimizer', icon: Wrench, page: BuildOptimizer, hint: 'Mejora una build' },
-      { id: 'recruit', key: 'nav.recruit', icon: BookOpen, page: Recruitment, hint: 'Qué Pokémon reclutar' },
-    ],
-  },
-  {
-    title: 'Herramientas',
-    routes: [
-      { id: 'calc', key: 'nav.calc', icon: Calculator, page: DamageCalc, hint: 'Daño y umbrales de SP' },
-      { id: 'speed', key: 'nav.speed', icon: Gauge, page: SpeedTiers, hint: 'Quién es más rápido' },
-      { id: 'simulator', key: 'nav.simulator', icon: FlaskConical, page: Simulator, hint: 'Analiza un turno concreto' },
+      { id: 'tools', key: 'nav.tools', icon: Calculator, page: ToolsHub, hint: 'Daño, velocidad y turnos' },
       { id: 'meta', key: 'nav.meta', icon: Activity, page: MetaIntelligence, hint: 'Lo que se usa ahora' },
     ],
   },
@@ -87,7 +115,18 @@ export function navigate(id: string, params?: Record<string, string>) {
 }
 
 function useRoute() {
-  const parse = () => window.location.hash.replace(/^#\//, '').split('?')[0] || 'dashboard';
+  const parse = () => {
+    const [id, q] = window.location.hash.replace(/^#\//, '').split('?');
+    const alias = ALIASES[id ?? ''];
+    if (alias) {
+      // keep any other parameter (e.g. history?new=1)
+      const params = new URLSearchParams(q ?? '');
+      params.set('tab', alias[1]);
+      window.history.replaceState(null, '', `#/${alias[0]}?${params}`);
+      return alias[0];
+    }
+    return id || 'dashboard';
+  };
   const [r, setR] = useState(parse);
   useEffect(() => {
     const f = () => setR(parse());

@@ -71,7 +71,7 @@ export default function BattleHistory() {
     const raw = sessionStorage.getItem(PREFILL_KEY);
     sessionStorage.removeItem(PREFILL_KEY);
     setEditing(blank(raw ? JSON.parse(raw) : {}));
-    history.replaceState(null, '', '#/history');
+    history.replaceState(null, '', '#/games?tab=history');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

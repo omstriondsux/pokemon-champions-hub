@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { Bot, Dices, ExternalLink, Flag, Loader2, RotateCcw, Swords, Trophy } from 'lucide-react';
+import { Bot, Dices, ExternalLink, Flag, Loader2, Pencil, RotateCcw, Swords, Trash2, Trophy } from 'lucide-react';
 import { dex, getSpecies, makeBuild, type Build } from '@pch/engine';
 import { parseLog, teamState, type ParsedBattle, type Review, type Side } from '@pch/engine/battle/log';
 import type { BattleOut, View } from '../workers/battle.worker';
@@ -12,6 +12,7 @@ import { api, type MetaTeam } from '../lib/api';
 import type { Mode } from '../lib/types';
 import { Empty, ItemIcon, PageHeader, Segmented, Sprite } from '../components/ui';
 import { localiseNote, TurnReview, type AiTurnInfo } from '../components/TurnReview';
+import { TeamEditor } from '../components/TeamEditor';
 import { useScenePlayer, type SceneState, type Side as SceneSide } from '../components/BattleScene';
 import { BattleSceneView } from '../components/BattleSceneView';
 
@@ -27,13 +28,6 @@ export default function PlayVsAI() {
   const mode = settings.defaultMode;
   const pool = usePool(false);
   const modeTeams = teams.filter((t) => t.format === mode);
-  const [teamId, setTeamId] = useState(settings.activeTeam[mode] ?? modeTeams[0]?.id ?? '');
-  const [myGen, setMyGen] = useState<Build[]>();
-  const saved = useMemo(() => resolveTeam(teams.find((t) => t.id === teamId), pokemon).builds, [teams, teamId, pokemon]);
-  const myTeam = teamId === '__gen' || !modeTeams.length ? (myGen ?? []) : saved;
-  const [botTeam, setBotTeam] = useState<Build[]>();
-  const [botInfo, setBotInfo] = useState<MetaTeam>();
-  const [myInfo, setMyInfo] = useState<MetaTeam>();
   const [meta, setMeta] = useState<MetaTeam[]>();
   useEffect(() => {
     setMeta(undefined);
@@ -42,17 +36,34 @@ export default function PlayVsAI() {
       .then((f) => setMeta(f.teams ?? []))
       .catch(() => setMeta([]));
   }, [mode]);
+
+  // Each side: one of your teams, a real meta team, or a custom team you edit (kept in this browser).
+  const [mySide, setMySide] = useSideState('me', mode, settings.activeTeam[mode] ?? modeTeams[0]?.id);
+  const [botSide, setBotSide] = useSideState('bot', mode);
+  const buildsOf = (st: SideState): Build[] =>
+    st.source === 'mine' ? resolveTeam(teams.find((t) => t.id === st.teamId), pokemon).builds : st.source === 'meta' ? (meta?.find((t) => t.id === st.metaId)?.members.map((m) => makeBuild(m)) ?? []) : st.custom;
+  const myTeam = useMemo(() => buildsOf(mySide), [mySide, teams, pokemon, meta]); // eslint-disable-line react-hooks/exhaustive-deps
+  const botTeam = useMemo(() => buildsOf(botSide), [botSide, teams, pokemon, meta]); // eslint-disable-line react-hooks/exhaustive-deps
+
   /** A real meta team, weighted by how often it was seen; never the exact team on the other side. */
-  const pickMeta = (avoid?: MetaTeam): MetaTeam | undefined => {
-    const pool = (meta ?? []).filter((t) => t.id !== avoid?.id);
-    if (!pool.length) return undefined;
-    const w = pool.map((t) => Math.sqrt(t.seen) + 1);
+  const randomMeta = (avoid?: string): MetaTeam | undefined => {
+    const list = (meta ?? []).filter((t) => t.id !== avoid);
+    if (!list.length) return undefined;
+    const w = list.map((t) => Math.sqrt(t.seen) + 1);
     let x = Math.random() * w.reduce((a, b) => a + b, 0);
-    for (let i = 0; i < pool.length; i++) if ((x -= w[i]!) <= 0) return pool[i];
-    return pool[0];
+    for (let i = 0; i < list.length; i++) if ((x -= w[i]!) <= 0) return list[i];
+    return list[0];
   };
-  const toBuilds = (t: MetaTeam) => t.members.map((m) => makeBuild(m));
-  const [botBusy, setBotBusy] = useState(false);
+  // first visit: the AI gets a meta team; you get your active team, or a meta team if you have none
+  useEffect(() => {
+    if (!meta?.length) return;
+    if (botSide.source === 'meta' && !meta.some((t) => t.id === botSide.metaId)) setBotSide({ ...botSide, metaId: randomMeta(mySide.metaId)?.id });
+    if (mySide.source === 'mine' && !modeTeams.some((t) => t.id === mySide.teamId)) setMySide({ ...mySide, source: 'meta', metaId: randomMeta(botSide.metaId)?.id });
+    if (mySide.source === 'meta' && !meta.some((t) => t.id === mySide.metaId)) setMySide({ ...mySide, metaId: randomMeta(botSide.metaId)?.id });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [meta, mode]);
+
+  const [genBusy, setGenBusy] = useState(false);
   const [depth, setDepth] = useState(2);
   const [phase, setPhase] = useState<Phase>('setup');
   const [err, setErr] = useState<string>();
@@ -68,79 +79,25 @@ export default function PlayVsAI() {
 
   useEffect(() => () => client.current?.close(), []);
 
-  // teams from the Squad Builder with a random objective, so every game is different
-  // avoid = species of the other side (no mirror matches); a random 75% of the pool adds variety
+  /** Squad Builder team with a random objective (used by "Generar uno automático"). */
   const genTeam = async (avoid: Build[] = []): Promise<Build[]> => {
-    const s = await snapshot(mode);
-    const profile = PROFILES[Math.floor(Math.random() * PROFILES.length)]!;
-    const skip = new Set(avoid.map((b) => b.species));
-    let sub = pool.filter((p) => !skip.has(p.build.species) && Math.random() < 0.75);
-    if (sub.length < 12) sub = pool.filter((p) => !skip.has(p.build.species));
-    const r = await runAnalysis<{ result: { teams: { members: number[] }[] } }>({ type: 'squad', pack: regulation.pack, snapshot: s, snapshotKey: s?.meta.url, pool: sub, format: mode, profile, locked: [], topN: 24 });
-    const opts = r.result.teams.slice(0, 3);
-    const t = opts[Math.floor(Math.random() * opts.length)];
-    if (!t) throw new Error('No se pudo armar un equipo');
-    return t.members.map((i) => sub[i]!.build);
-  };
-  // refs: generation is async, so always avoid the *latest* team and never run two at once
-  const myTeamRef = useRef<Build[]>([]);
-  myTeamRef.current = myTeam;
-  const myInfoRef = useRef<MetaTeam | undefined>(undefined);
-  myInfoRef.current = teamId === '__gen' || !modeTeams.length ? myInfo : undefined;
-  const botRunning = useRef(false);
-  const rollBot = async () => {
-    if (botRunning.current) return;
-    botRunning.current = true;
-    setBotBusy(true);
-    setErr(undefined);
+    setGenBusy(true);
     try {
-      const t = pickMeta(myInfoRef.current);
-      if (t) {
-        setBotTeam(toBuilds(t));
-        setBotInfo(t);
-      } else {
-        setBotTeam(await genTeam(myTeamRef.current));
-        setBotInfo(undefined);
-      }
-    } catch (e) {
-      setErr(String(e instanceof Error ? e.message : e));
+      const s = await snapshot(mode);
+      const profile = PROFILES[Math.floor(Math.random() * PROFILES.length)]!;
+      const skip = new Set(avoid.map((b) => b.species));
+      let sub = pool.filter((p) => !skip.has(p.build.species) && Math.random() < 0.75);
+      if (sub.length < 12) sub = pool.filter((p) => !skip.has(p.build.species));
+      const r = await runAnalysis<{ result: { teams: { members: number[] }[] } }>({ type: 'squad', pack: regulation.pack, snapshot: s, snapshotKey: s?.meta.url, pool: sub, format: mode, profile, locked: [], topN: 24 });
+      const opts = r.result.teams.slice(0, 3);
+      const t = opts[Math.floor(Math.random() * opts.length)];
+      if (!t) throw new Error('No se pudo armar un equipo');
+      return t.members.map((i) => sub[i]!.build);
     } finally {
-      botRunning.current = false;
-      setBotBusy(false);
+      setGenBusy(false);
     }
   };
-  const [myBusy, setMyBusy] = useState(false);
-  const rollMine = async () => {
-    setMyBusy(true);
-    setErr(undefined);
-    try {
-      const t = pickMeta(botInfo);
-      if (t) {
-        setMyGen(toBuilds(t));
-        setMyInfo(t);
-      } else {
-        setMyGen(await genTeam(botTeam));
-        setMyInfo(undefined);
-      }
-      setTeamId('__gen');
-    } catch (e) {
-      setErr(String(e instanceof Error ? e.message : e));
-    } finally {
-      setMyBusy(false);
-    }
-  };
-  useEffect(() => {
-    if (!botTeam && meta !== undefined && (meta.length || pool.length)) rollBot();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pool.length, mode, meta]);
-  // your team changed and now shares Pokémon with the AI's: give the AI a different one
-  const myKey = myTeam.map((b) => b.species).join('|');
-  useEffect(() => {
-    if (!botTeam || phase !== 'setup') return;
-    const mine = new Set(myTeam.map((b) => b.species));
-    if (botTeam.filter((b) => mine.has(b.species)).length >= 5) rollBot();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [myKey, botTeam]);
+  const rerollBot = () => setBotSide({ ...botSide, source: 'meta', metaId: randomMeta(mySide.source === 'meta' ? mySide.metaId : undefined)?.id });
 
   const onMsg = (m: BattleOut) => {
     if (m.type === 'error') return setStarting(false), setErr(m.message);
@@ -159,7 +116,7 @@ export default function PlayVsAI() {
 
   const [starting, setStarting] = useState(false);
   const start = async () => {
-    if (!botTeam || myTeam.length < PICK[mode]) return;
+    if (botTeam.length < PICK[mode] || myTeam.length < PICK[mode]) return;
     setStarting(true);
     setErr(undefined);
     setLines([]);
@@ -203,26 +160,48 @@ export default function PlayVsAI() {
         <Setup
           mode={mode}
           setMode={(m) => saveSettings({ defaultMode: m })}
-          teams={modeTeams}
-          teamId={teamId}
-          setTeamId={setTeamId}
-          myTeam={myTeam}
-          rollMine={rollMine}
-          myBusy={myBusy}
-          hasGen={!!myGen}
-          myInfo={teamId === '__gen' || !modeTeams.length ? myInfo : undefined}
-          botInfo={botInfo}
-          hasMeta={!!meta?.length}
-          botTeam={botTeam}
-          botBusy={botBusy}
-          rollBot={rollBot}
+          me={
+            <TeamPicker
+              title="Tu equipo"
+              mode={mode}
+              state={mySide}
+              setState={setMySide}
+              builds={myTeam}
+              myTeams={modeTeams}
+              meta={meta}
+              onGenerate={() => genTeam(botTeam)}
+              genBusy={genBusy}
+              onRandomMeta={() => setMySide({ ...mySide, source: 'meta', metaId: randomMeta(botSide.source === 'meta' ? botSide.metaId : undefined)?.id })}
+            />
+          }
+          bot={
+            <TeamPicker
+              title={
+                <>
+                  <Bot size={14} /> Equipo de la IA
+                </>
+              }
+              mode={mode}
+              state={botSide}
+              setState={setBotSide}
+              builds={botTeam}
+              myTeams={modeTeams}
+              meta={meta}
+              onGenerate={() => genTeam(myTeam)}
+              genBusy={genBusy}
+              onRandomMeta={rerollBot}
+              note="Por defecto, un equipo real de los mejores jugadores de Showdown (se actualizan cada semana). También puedes darle uno de tus equipos o armarle uno a tu gusto. Hojas de equipo abiertas, como en Reg M-C."
+            />
+          }
+          ready={myTeam.length >= PICK[mode] && botTeam.length >= PICK[mode]}
+          why={myTeam.length < PICK[mode] ? `Tu equipo necesita al menos ${PICK[mode]} Pokémon` : botTeam.length < PICK[mode] ? `El equipo de la IA necesita al menos ${PICK[mode]} Pokémon` : undefined}
           depth={depth}
           setDepth={setDepth}
           onStart={start}
           starting={starting}
         />
       )}
-      {phase === 'preview' && view && botTeam && <Preview mode={mode} myTeam={myTeam} botTeam={botTeam} onConfirm={(order) => client.current?.send({ type: 'preview', order })} />}
+      {phase === 'preview' && view && <Preview mode={mode} myTeam={myTeam} botTeam={botTeam} onConfirm={(order) => client.current?.send({ type: 'preview', order })} />}
       {(phase === 'battle' || phase === 'over') && view && parsed && (
         <BattleScreen view={view} parsed={parsed} lines={lines} thinking={thinking} ai={ai} over={phase === 'over'} onChoose={(c) => client.current?.send({ type: 'choose', choice: c })} />
       )}
@@ -236,8 +215,7 @@ export default function PlayVsAI() {
               className="btn"
               onClick={() => {
                 setPhase('setup');
-                setBotTeam(undefined);
-                rollBot();
+                rerollBot();
               }}
             >
               <Dices size={14} /> Otro rival
@@ -252,7 +230,7 @@ export default function PlayVsAI() {
           )}
         </div>
       )}
-      {botOrder.length > 0 && phase === 'over' && botTeam && (
+      {botOrder.length > 0 && phase === 'over' && (
         <p className="mt-3 text-xs text-faint">
           La IA llevó: {botOrder.map((i) => names.species(botTeam[i]?.species)).join(', ')}.
         </p>
@@ -299,78 +277,157 @@ function TeamRow({ team, size = 40 }: { team: Build[]; size?: number }) {
   );
 }
 
+type Source = 'mine' | 'meta' | 'custom';
+interface SideState {
+  source: Source;
+  teamId?: string;
+  metaId?: string;
+  custom: Build[];
+}
+
+/** Side choice, remembered per side and mode in this browser (custom teams included). */
+function useSideState(side: 'me' | 'bot', mode: Mode, teamId?: string): [SideState, (s: SideState) => void] {
+  const key = `pch.play.${side}.${mode}`;
+  const load = (): SideState => {
+    try {
+      const v = JSON.parse(localStorage.getItem(key) ?? 'null');
+      if (v && Array.isArray(v.custom)) return v;
+    } catch {
+      /* ignore */
+    }
+    return { source: side === 'me' && teamId ? 'mine' : 'meta', teamId, custom: [] };
+  };
+  const [st, setSt] = useState<SideState>(load);
+  useEffect(() => setSt(load()), [mode]); // eslint-disable-line react-hooks/exhaustive-deps
+  const set = (s: SideState) => {
+    setSt(s);
+    try {
+      localStorage.setItem(key, JSON.stringify(s));
+    } catch {
+      /* ignore */
+    }
+  };
+  return [st, set];
+}
+
+function TeamPicker(p: {
+  title: ReactNode;
+  mode: Mode;
+  state: SideState;
+  setState: (s: SideState) => void;
+  builds: Build[];
+  myTeams: { id: string; name: string }[];
+  meta?: MetaTeam[];
+  onGenerate: () => Promise<Build[]>;
+  genBusy: boolean;
+  onRandomMeta: () => void;
+  note?: string;
+}) {
+  const { names } = useApp();
+  const { state: st, setState } = p;
+  const metaTeam = p.meta?.find((t) => t.id === st.metaId);
+  const sources: { value: Source; label: string }[] = [
+    ...(p.myTeams.length ? [{ value: 'mine' as Source, label: 'Mis equipos' }] : []),
+    ...(p.meta?.length ? [{ value: 'meta' as Source, label: 'Equipo meta' }] : []),
+    { value: 'custom', label: 'Personalizado' },
+  ];
+  const editCopy = () => setState({ ...st, source: 'custom', custom: structuredClone(p.builds) });
+  const metaLabel = (t: MetaTeam, i: number) => `#${i + 1} · ${t.members.map((m) => names.species(m.species)).join(', ')} · ${t.rating}`;
+
+  return (
+    <div className="panel p-4">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <span className="panel-title flex items-center gap-1.5">{p.title}</span>
+        <Segmented value={st.source} onChange={(source) => setState({ ...st, source, teamId: st.teamId ?? p.myTeams[0]?.id, metaId: st.metaId ?? p.meta?.[0]?.id })} options={sources} />
+      </div>
+
+      {st.source === 'mine' && (
+        <div className="mb-2 flex flex-wrap items-center gap-2">
+          <select className="input w-64 py-1" value={st.teamId ?? ''} onChange={(e) => setState({ ...st, teamId: e.target.value })}>
+            {p.myTeams.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+          </select>
+          <button className="btn text-xs" onClick={editCopy}>
+            <Pencil size={13} /> Editar para este combate
+          </button>
+        </div>
+      )}
+
+      {st.source === 'meta' && p.meta && (
+        <>
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <select className="input min-w-0 flex-1 py-1 text-xs sm:text-sm" value={st.metaId ?? ''} onChange={(e) => setState({ ...st, metaId: e.target.value })}>
+              {p.meta.map((t, i) => (
+                <option key={t.id} value={t.id}>
+                  {metaLabel(t, i)}
+                </option>
+              ))}
+            </select>
+            <button className="btn text-xs" onClick={p.onRandomMeta}>
+              <Dices size={13} /> Aleatorio
+            </button>
+            <button className="btn text-xs" onClick={editCopy}>
+              <Pencil size={13} /> Editar builds
+            </button>
+          </div>
+          {metaTeam && <MetaBadge t={metaTeam} />}
+        </>
+      )}
+
+      {st.source === 'custom' ? (
+        <>
+          <div className="mb-2 flex flex-wrap gap-2">
+            <button className="btn text-xs" disabled={p.genBusy} onClick={async () => setState({ ...st, source: 'custom', custom: await p.onGenerate() })}>
+              {p.genBusy ? <Loader2 size={13} className="animate-spin" /> : <Dices size={13} />} Generar uno automático
+            </button>
+            {st.custom.length > 0 && (
+              <button className="btn text-xs text-bad" onClick={() => setState({ ...st, custom: [] })}>
+                <Trash2 size={13} /> Vaciar
+              </button>
+            )}
+          </div>
+          <TeamEditor team={st.custom} onChange={(custom) => setState({ ...st, custom })} mode={p.mode} />
+        </>
+      ) : p.builds.length ? (
+        <TeamRow team={p.builds} />
+      ) : (
+        <p className="text-sm text-muted">Cargando equipo…</p>
+      )}
+      {p.note && <p className="mt-2 text-[11px] text-faint">{p.note}</p>}
+    </div>
+  );
+}
+
 function Setup(p: {
   mode: Mode;
   setMode: (m: Mode) => void;
-  teams: { id: string; name: string }[];
-  teamId: string;
-  setTeamId: (s: string) => void;
-  myTeam: Build[];
-  rollMine: () => void;
-  myBusy: boolean;
-  hasGen: boolean;
-  myInfo?: MetaTeam;
-  botInfo?: MetaTeam;
-  hasMeta: boolean;
-  botTeam?: Build[];
-  botBusy: boolean;
-  rollBot: () => void;
+  me: ReactNode;
+  bot: ReactNode;
+  ready: boolean;
+  why?: string;
   depth: number;
   setDepth: (n: number) => void;
   onStart: () => void;
   starting: boolean;
 }) {
-  const ok = p.myTeam.length >= PICK[p.mode] && !!p.botTeam && !p.botBusy && !p.myBusy && !p.starting;
   return (
     <div className="space-y-4">
-      <div className="panel p-4">
-        <div className="mb-2 flex flex-wrap items-center gap-3">
-          <span className="panel-title">Tu equipo</span>
-          <Segmented value={p.mode} onChange={p.setMode} options={[{ value: 'doubles', label: 'Dobles (elige 4)' }, { value: 'singles', label: 'Individuales (elige 3)' }]} />
-          {p.teams.length > 0 && (
-            <select className="input w-56 py-1" value={p.teamId} onChange={(e) => p.setTeamId(e.target.value)}>
-              {p.teams.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
-              ))}
-              {p.hasGen && <option value="__gen">{p.myInfo ? 'Equipo meta' : 'Equipo generado'}</option>}
-            </select>
-          )}
-          <button className="btn text-xs" onClick={p.rollMine} disabled={p.myBusy}>
-            {p.myBusy ? <Loader2 size={13} className="animate-spin" /> : <Trophy size={13} />} {p.hasMeta ? (p.myInfo ? 'Otro equipo meta' : 'Usar un equipo meta') : p.teams.length ? 'Usar uno generado' : 'Arma uno por mí'}
-          </button>
-        </div>
-        {p.myInfo && <MetaBadge t={p.myInfo} />}
-        {p.myTeam.length ? (
-          <TeamRow team={p.myTeam} />
-        ) : (
-          <Empty>
-            No tienes equipos de {p.mode === 'doubles' ? 'dobles' : 'individuales'}. Pulsa «Arma uno por mí» para jugar ya con un equipo del meta, o crea el tuyo en <a className="text-accent underline" href="#/squad">Squad Builder</a>.
-          </Empty>
-        )}
-        {p.myTeam.length > 0 && p.myTeam.length < PICK[p.mode] && <p className="mt-2 text-sm text-warn">Tu equipo necesita al menos {PICK[p.mode]} Pokémon.</p>}
-      </div>
-      <div className="panel p-4">
-        <div className="mb-2 flex flex-wrap items-center gap-3">
-          <span className="panel-title flex items-center gap-1.5">
-            <Bot size={14} /> Equipo de la IA
-          </span>
-          <button className="btn text-xs" onClick={p.rollBot} disabled={p.botBusy}>
-            {p.botBusy ? <Loader2 size={13} className="animate-spin" /> : <Dices size={13} />} {p.botInfo ? 'Otro equipo meta' : 'Otro equipo'}
-          </button>
-          <span className="text-[11px] text-faint">{p.botInfo ? 'Un equipo real de los mejores jugadores de Showdown, actualizado cada semana. Hojas de equipo abiertas, como en Reg M-C.' : 'Armado por el Squad Builder con los Pokémon del meta. Hojas de equipo abiertas, como en Reg M-C.'}</span>
-        </div>
-        {p.botInfo && <MetaBadge t={p.botInfo} />}
-        {p.botTeam ? <TeamRow team={p.botTeam} /> : <p className="text-sm text-muted">Buscando un equipo meta…</p>}
-      </div>
+      <Segmented value={p.mode} onChange={p.setMode} options={[{ value: 'doubles', label: 'Dobles (elige 4 de 6)' }, { value: 'singles', label: 'Individuales (elige 3 de 6)' }]} />
+      {p.me}
+      {p.bot}
       <div className="panel flex flex-wrap items-center gap-3 p-4">
         <span className="panel-title">Dificultad</span>
         <Segmented value={String(p.depth)} onChange={(v) => p.setDepth(Number(v))} options={[1, 2, 3].map((d) => ({ value: String(d), label: DEPTH_LABEL[d]! }))} />
-        <span className="text-[11px] text-faint">Más difícil = la IA prueba más jugadas por turno (tarda un poco más).</span>
-        <button className="btn btn-primary ml-auto" disabled={!ok} onClick={p.onStart}>
-          {p.starting ? <Loader2 size={15} className="animate-spin" /> : <Swords size={15} />} {p.starting ? 'Cargando el motor de combate…' : p.botBusy || p.myBusy ? 'Armando equipos…' : 'Empezar combate'}
-        </button>
+        <span className="text-[11px] text-faint">Más difícil = la IA prueba más jugadas por turno.</span>
+        <div className="ml-auto flex items-center gap-2">
+          {p.why && <span className="text-xs text-warn">{p.why}</span>}
+          <button className="btn btn-primary" disabled={!p.ready || p.starting} onClick={p.onStart}>
+            {p.starting ? <Loader2 size={15} className="animate-spin" /> : <Swords size={15} />} {p.starting ? 'Cargando el motor de combate…' : 'Empezar combate'}
+          </button>
+        </div>
       </div>
     </div>
   );
